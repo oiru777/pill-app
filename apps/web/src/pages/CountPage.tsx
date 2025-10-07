@@ -10,6 +10,7 @@ import { loadMetadata } from "../libs/load_metadata";
 import { loadYOLOModel } from "../libs/load_model";
 import { getImagePath, getModelPath } from "../libs/model_path";
 import { detectView } from "../libs/view/detect";
+import { Button } from "@mui/material";
 
 import type { DetectBbox, YOLOMetadata } from "../libs/types";
 
@@ -95,12 +96,7 @@ export const CountPage: FC = () => {
 
   return (
     <div className="flex flex-col gap-4 items-center py-12">
-      <h1 className="text-3xl sm:text-4xl md:text-5xl text-center py-12 text-purple-800">
-        Object Detection in Browser
-      </h1>
-      <p className="text-center opacity-80">
-        Tensorflow.jsとYOLOモデルを使用した物体検出デモです。
-      </p>
+      <h3>錠数カウント</h3>
 
       <label
         htmlFor="input_file"
@@ -169,6 +165,7 @@ export const CountPage: FC = () => {
         </div>
         <div>
           <h2 className="text-lg font-semibold mb-2 text-center">Result</h2>
+          <Button variant="outlined">この検出結果で登録</Button>
           <canvas
             ref={canvasRef}
             className="w-full max-w-[800px] h-auto rounded-lg shadow-md"
