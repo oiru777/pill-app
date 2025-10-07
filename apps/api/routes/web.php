@@ -15,20 +15,17 @@ use Illuminate\Http\Request;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();
     return redirect(env('FRONTEND_URL') . '/verified');
 })->middleware(['signed'])->name('verification.verify');
 
-// フロントエンドのすべてのリクエストをキャッチするルート
-Route::get('{any}', function () {
-    return view('app');
-})->where('any','.*');
 
 Route::get('/verified', function () {
     return 'メール認証済みです！';
 });
+
+Route::get('/reset-password/{token}', function ($token) {
+    return redirect(env('FRONTEND_URL') . '/reset-password/' . $token);
+})->name('password.reset');
