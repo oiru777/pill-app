@@ -29,12 +29,6 @@ export const ResetPasswordPage: React.FC = () => {
         withCredentials: true,
       });
 
-      // クッキーからXSRF-TOKENを取得
-      const xsrfToken = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith("XSRF-TOKEN="))
-        ?.split("=")[1];
-
       await axios.post(
         "http://localhost/api/v1.0/reset-password",
         {
@@ -45,9 +39,6 @@ export const ResetPasswordPage: React.FC = () => {
         },
         {
           withCredentials: true,
-          headers: {
-            "X-XSRF-TOKEN": decodeURIComponent(xsrfToken || ""),
-          },
         }
       );
       setMessage("パスワードをリセットしました。ログインしてください。");

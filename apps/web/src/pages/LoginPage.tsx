@@ -28,13 +28,34 @@ export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {
     axios.defaults.withCredentials = true;
 
     try {
-      await axios.get("/sanctum/csrf-cookie");
+      // CSRFトークン取得（クッキーに XSRF-TOKEN がセットされる）
+      await axios.get("/sanctum/csrf-cookie", {
+        withCredentials: true,
+      });
       console.log("==csrf-cookie success==");
 
-      const res = await axios.post("/api/v1.0/login", {
-        email: loginId,
-        password: password,
-      });
+      // Cookie から XSRF-TOKEN を取得してデコード
+      const xsrfToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("XSRF-TOKEN="))
+        ?.split("=")[1];
+
+      // ログインAPI呼び出し
+      const res = await axios.post(
+        "/api/v1.0/login",
+        {
+          email: loginId,
+          password: password,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            "X-XSRF-TOKEN": decodeURIComponent(xsrfToken || ""),
+          },
+        }
+      );
+
+      // ログイン後の処理
       onLogin(res.data);
 
       console.log("==login success==", res);

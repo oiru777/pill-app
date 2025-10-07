@@ -12,9 +12,29 @@ export const ForgotPassword: React.FC = () => {
     setMessage("");
     setError("");
     try {
-      await axios.post("http://localhost/api/v1.0/forgot-password", {
-        email,
+      // CSRFトークン取得（XSRF-TOKEN Cookie をセット）
+      await axios.get("http://localhost/sanctum/csrf-cookie", {
+        withCredentials: true,
       });
+
+      // Cookie からトークンを取得してデコード
+      const xsrfToken = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("XSRF-TOKEN="))
+        ?.split("=")[1];
+
+      // パスワードリセットリンク送信
+      await axios.post(
+        "http://localhost/api/v1.0/forgot-password",
+        { email },
+        {
+          withCredentials: true,
+          headers: {
+            "X-XSRF-TOKEN": decodeURIComponent(xsrfToken || ""),
+          },
+        }
+      );
+
       setMessage("リセットリンクを送信しました。メールを確認してください。");
     } catch (err: any) {
       console.error(err);

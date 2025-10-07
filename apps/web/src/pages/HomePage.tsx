@@ -87,10 +87,25 @@ export const HomePage: FC = () => {
       <Button
         variant="outlined"
         onClick={async () => {
+          await axios.get("http://localhost/sanctum/csrf-cookie", {
+            withCredentials: true,
+          });
+
+          // ここでXSRF-TOKENを取得してヘッダーにセットする例
+          const xsrfToken = document.cookie
+            .split("; ")
+            .find((row) => row.startsWith("XSRF-TOKEN="))
+            ?.split("=")[1];
+
           await axios.post(
-            "http://localhost:8000/api/v1.0/logout",
+            "http://localhost/api/v1.0/logout",
             {},
-            { withCredentials: true }
+            {
+              withCredentials: true,
+              headers: {
+                "X-XSRF-TOKEN": decodeURIComponent(xsrfToken || ""),
+              },
+            }
           );
           setUser(null);
         }}
