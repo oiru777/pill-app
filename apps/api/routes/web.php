@@ -26,6 +26,8 @@ Route::get('/verified', function () {
     return 'メール認証済みです！';
 });
 
-Route::get('/reset-password/{token}', function ($token) {
-    return redirect(env('FRONTEND_URL') . '/reset-password/' . $token);
-})->name('password.reset');
+Route::get('/reset-password/{token}', function ($token, Request $request) {
+    $query = http_build_query($request->query());
+    $url = env('FRONTEND_URL') . "/reset-password/{$token}" . ($query ? "?{$query}" : "");
+    return redirect($url);
+});

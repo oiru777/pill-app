@@ -11,6 +11,10 @@ import {
 } from "@mui/material";
 
 export const ResetPasswordPage: React.FC = () => {
+  const queryString = window.location.search;
+  const params = new URLSearchParams(queryString);
+  const emailFromUrl = params.get("email") || "";
+  console.log("emailFromUrl", emailFromUrl);
   const { token } = useParams();
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
