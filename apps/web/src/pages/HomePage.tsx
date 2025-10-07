@@ -4,8 +4,10 @@ import type { FC } from "react";
 import { Button, Typography, Box } from "@mui/material";
 import type { User } from "../types";
 import { LoginPage } from "./LoginPage";
+import { useNavigate } from "react-router-dom";
 
 export const HomePage: FC = () => {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [sendingVerification, setSendingVerification] = useState(false);
@@ -111,6 +113,9 @@ export const HomePage: FC = () => {
         }}
       >
         ログアウト
+      </Button>
+      <Button variant="outlined" onClick={() => navigate("/count")}>
+        錠数カウント
       </Button>
       <Box sx={{ mt: 4, width: "100%", maxWidth: 600 }}></Box>
     </Box>

@@ -3,6 +3,7 @@ import "./app.css";
 import React from "react";
 
 import { HomePage } from "./pages/HomePage";
+import { CountPage } from "./pages/CountPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -23,6 +24,7 @@ const App: React.FC = () => {
       <div>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/count" element={<CountPage />} />
           <Route
             path="/register"
             element={<RegisterPage onLogin={handleLogin} />}
