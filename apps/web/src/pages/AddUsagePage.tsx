@@ -117,7 +117,6 @@ export default function AddUsagePage() {
       const res = await axios.post(
         `${API_BASE}/api/v1.0/usage-lists`,
         {
-          user_id: user.id,
           content,
           timestamp,
           items,

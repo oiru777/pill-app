@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\UsageList;
 use App\Models\UsageItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class UsageListController extends Controller
 {
@@ -24,7 +25,7 @@ class UsageListController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|string|numeric',
+            'user_id' => 'nullable|integer|exists:users,id',
             'content' => 'nullable|string',
             'timestamp' => 'required|date',
             'items' => 'required|array|min:1',
@@ -37,7 +38,7 @@ class UsageListController extends Controller
 
         // usage_lists に登録（created_at, updated_at は自動で記録）
         $usageList = UsageList::create([
-            'user_id' => $user->id,
+            'user_id' => Auth::id(),
             'content' => $validated['content'] ?? null,
             'timestamp' => $validated['timestamp'],
         ]);
