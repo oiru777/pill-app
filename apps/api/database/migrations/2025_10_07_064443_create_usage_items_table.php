@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('usage_list_id')->constrained()->onDelete('cascade');
             $table->foreignId('pill_id')->constrained()->onDelete('cascade');
             $table->integer('quantity');
-            $table->timestamps();
+            $table->timestamp('timestamp'); // ← ユーザー入力
+            $table->timestamps(); // ← created_at / updated_at をLaravelが自動管理
         });
     }
 

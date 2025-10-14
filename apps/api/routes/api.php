@@ -11,6 +11,9 @@ use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Support\Str;
+use App\Http\Controllers\PillController;
+use App\Http\Controllers\UsageListController;
+use App\Http\Controllers\UsageItemController;
 
 
 Route::middleware(['web'])->prefix('/v1.0')->group(function () {
@@ -19,6 +22,19 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     Route::post('/login', [LoginController::class, 'login']);
     Route::post('/logout', [LoginController::class, 'logout']);
     Route::post('/register', [RegisterController::class, 'register']);
+
+    // 🔹 薬関連
+    Route::get('/pills', [PillController::class, 'index']);      // 薬一覧
+    Route::get('/pills/{id}', [PillController::class, 'show']);  // 特定の薬を取得
+
+    // 🔹 使用履歴（UsageList）
+    Route::get('/usage-lists', [UsageListController::class, 'index']); // 一覧
+    Route::get('/usage-lists/{id}', [UsageListController::class, 'show']); // 詳細
+    Route::post('/usage-lists', [UsageListController::class, 'store']); // 登録
+
+    // 🔹 使用アイテム（UsageItem）
+    Route::get('/usage-items', [UsageItemController::class, 'index']); // 一覧（usage_idで絞り込み可）
+    Route::get('/usage-items/{id}', [UsageItemController::class, 'show']); // 詳細
 
     // パスワードリセットリンク送信
     Route::post('/forgot-password', function (Request $request) {

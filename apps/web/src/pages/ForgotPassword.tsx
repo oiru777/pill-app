@@ -13,7 +13,7 @@ export const ForgotPassword: React.FC = () => {
     setError("");
     try {
       // CSRFトークン取得（XSRF-TOKEN Cookie をセット）
-      await axios.get("http://localhost/sanctum/csrf-cookie", {
+      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
       });
 
@@ -25,7 +25,7 @@ export const ForgotPassword: React.FC = () => {
 
       // パスワードリセットリンク送信
       await axios.post(
-        "http://localhost/api/v1.0/forgot-password",
+        "http://localhost:8000/api/v1.0/forgot-password",
         { email },
         {
           withCredentials: true,

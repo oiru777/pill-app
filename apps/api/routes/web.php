@@ -3,7 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\Request;
-
+use App\Http\Controllers\PillController;
+use App\Http\Controllers\UsageListController;
+use App\Http\Controllers\UsageItemController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -15,6 +17,14 @@ use Illuminate\Http\Request;
 |
 */
 
+// 薬一覧・取得用
+Route::apiResource('pills', PillController::class)->only(['index', 'show']);
+
+// 使用リスト（usage_lists）
+Route::apiResource('usage-lists', UsageListController::class)->only(['index', 'store', 'show']);
+
+// 使用アイテム（usage_items）
+Route::apiResource('usage-items', UsageItemController::class)->only(['index']);
 
 Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
     $request->fulfill();

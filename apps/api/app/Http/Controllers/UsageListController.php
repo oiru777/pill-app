@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\UsageList;
+use App\Models\UsageItem;
+use Illuminate\Http\Request;
+
+class UsageListController extends Controller
+{
+    /**
+     * 一覧取得（関連アイテムと薬情報付き）
+     */
+    public function index()
+    {
+        return UsageList::with('items.pill')
+            ->orderByDesc('timestamp')
+            ->get();
+    }
+
+    /**
+     * 新規登録
+     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'user_id' => 'required|string|numeric',
+            'content' => 'nullable|string',
+            'timestamp' => 'required|date',
+            'items' => 'required|array|min:1',
+            'items.*.pill_id' => 'required|integer|exists:pills,id',
+            'items.*.quantity' => 'required|numeric|min:1',
+        ]);
+
+        // ログイン中ユーザーを取得
+        $user = $request->user();
+
+        // usage_lists に登録（created_at, updated_at は自動で記録）
+        $usageList = UsageList::create([
+            'user_id' => $user->id,
+            'content' => $validated['content'] ?? null,
+            'timestamp' => $validated['timestamp'],
+        ]);
+
+        // usage_items に関連データを登録
+        foreach ($validated['items'] as $item) {
+            UsageItem::create([
+                'usage_id' => $usageList->id,
+                'pill_id' => $item['pill_id'],
+                'quantity' => $item['quantity'],
+                'timestamp' => $validated['timestamp'],
+            ]);
+        }
+
+        return response()->json(
+            $usageList->load('items.pill'),
+            201
+        );
+    }
+
+    /**
+     * 詳細取得
+     */
+    public function show($id)
+    {
+        $usageList = UsageList::with('items.pill')->findOrFail($id);
+        return response()->json($usageList);
+    }
+
+    /**
+     * 更新（contentやtimestampの変更）
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'content' => 'nullable|string',
+            'timestamp' => 'nullable|date',
+        ]);
+
+        $usageList = UsageList::findOrFail($id);
+        $usageList->update($validated);
+
+        // updated_at は自動で更新される
+        return response()->json($usageList->fresh('items.pill'));
+    }
+
+    /**
+     * 削除
+     */
+    public function destroy($id)
+    {
+        $usageList = UsageList::findOrFail($id);
+        $usageList->delete();
+
+        return response()->json(['message' => 'Deleted successfully']);
+    }
+}

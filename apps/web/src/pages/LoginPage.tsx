@@ -23,7 +23,7 @@ export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {
   const navigate = useNavigate();
 
   const handleLogin = async () => {
-    const url = "http://localhost";
+    const url = "http://localhost:8000";
     axios.defaults.baseURL = url;
     axios.defaults.withCredentials = true;
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import type { FC } from "react";
-import { Button, Typography, Box } from "@mui/material";
+import { Box, Button, Text } from "@chakra-ui/react";
 import type { User } from "../types";
 import { LoginPage } from "./LoginPage";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,7 @@ export const HomePage: FC = () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost/api/v1.0/user", { withCredentials: true })
+      .get("http://localhost:8000/api/v1.0/user", { withCredentials: true })
       .then((response) => {
         setUser(response.data);
       })
@@ -75,32 +75,27 @@ export const HomePage: FC = () => {
       </Box>
     );
   }
-
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        mt: 4,
-      }}
-    >
-      <Typography variant="h6">ようこそ、{user.name}さん！</Typography>
+    <Box display="flex" flexDirection="column" alignItems="center" mt={4}>
+      <Text fontSize="lg" fontWeight="semibold" mb={4}>
+        ようこそ、{user.name}さん！
+      </Text>
+
       <Button
-        variant="outlined"
+        variant="outline"
+        mb={2}
         onClick={async () => {
-          await axios.get("http://localhost/sanctum/csrf-cookie", {
+          await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
             withCredentials: true,
           });
 
-          // ここでXSRF-TOKENを取得してヘッダーにセットする例
           const xsrfToken = document.cookie
             .split("; ")
             .find((row) => row.startsWith("XSRF-TOKEN="))
             ?.split("=")[1];
 
           await axios.post(
-            "http://localhost/api/v1.0/logout",
+            "http://localhost:8000/api/v1.0/logout",
             {},
             {
               withCredentials: true,
@@ -109,15 +104,26 @@ export const HomePage: FC = () => {
               },
             }
           );
+
           setUser(null);
         }}
       >
         ログアウト
       </Button>
-      <Button variant="outlined" onClick={() => navigate("/count")}>
+
+      <Button variant="outline" mb={2} onClick={() => navigate("/count")}>
         錠数カウント
       </Button>
-      <Box sx={{ mt: 4, width: "100%", maxWidth: 600 }}></Box>
+
+      <Button variant="outline" mb={2} onClick={() => navigate("/add-usage")}>
+        記録追加
+      </Button>
+
+      <Button variant="outline" mb={2} onClick={() => navigate("/usage-list")}>
+        記録一覧
+      </Button>
+
+      <Box mt={4} width="100%" maxW="600px"></Box>
     </Box>
   );
 };

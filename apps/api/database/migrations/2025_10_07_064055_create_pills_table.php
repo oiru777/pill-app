@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('pills', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name');
             $table->decimal('price', 5, 2)->nullable();
             $table->timestamps();

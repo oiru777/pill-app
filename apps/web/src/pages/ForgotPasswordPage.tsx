@@ -25,12 +25,12 @@ export const ResetPasswordPage: React.FC = () => {
     setMessage("");
     setError("");
     try {
-      await axios.get("http://localhost/sanctum/csrf-cookie", {
+      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
       });
 
       await axios.post(
-        "http://localhost/api/v1.0/reset-password",
+        "http://localhost:8000/api/v1.0/reset-password",
         {
           token,
           email,

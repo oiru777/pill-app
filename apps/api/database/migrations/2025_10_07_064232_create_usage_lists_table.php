@@ -15,7 +15,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->text('content')->nullable(); // メモ
-            $table->timestamps();
+            $table->timestamp('timestamp'); // ← ユーザー入力
+            $table->timestamps(); // ← created_at / updated_at をLaravelが自動管理
         });
     }
 

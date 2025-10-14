@@ -1,12 +1,22 @@
-// src/main.tsx
-
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.tsx";
-import "./index.css";
+import { ChakraProvider } from "@chakra-ui/react";
+import App from "./App";
+import {
+  ThemeProvider as MuiThemeProvider,
+  createTheme,
+} from "@mui/material/styles";
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+const muiTheme = createTheme({
+  // MUIのテーマ設定
+});
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <MuiThemeProvider theme={muiTheme}>
+      <ChakraProvider>
+        <App />
+      </ChakraProvider>
+    </MuiThemeProvider>
   </React.StrictMode>
 );
