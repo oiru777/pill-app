@@ -36,7 +36,28 @@ class UsageListController extends Controller
 
         return response()->json($usages);
     }
+    // 折れ線グラフ用
+    public function graphData()
+    {
+        $lists = UsageList::with(['items.pill', 'user'])
+            ->where('user_id', 3)
+            ->orderBy('timestamp', 'desc')
+            ->get();
 
+        $result = [];
+
+        foreach ($lists as $list) {
+            foreach ($list->items as $item) {
+                $result[] = [
+                    'timestamp' => $list->timestamp,
+                    'pill_name' => $item->pill->name,
+                    'quantity' => $item->quantity,
+                ];
+            }
+        }
+
+        return response()->json($result);
+    }
     /**
      * 新規登録
      */

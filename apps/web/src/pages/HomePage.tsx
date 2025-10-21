@@ -151,6 +151,13 @@ export const HomePage: FC = () => {
         >
           記録一覧
         </Button>
+        <Button
+          colorScheme="teal"
+          variant="outline"
+          onClick={() => navigate("/chart")}
+        >
+          グラフ
+        </Button>
       </VStack>
     </Box>
   );

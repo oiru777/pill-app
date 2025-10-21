@@ -45,6 +45,7 @@ export const ForgotPassword: React.FC = () => {
         { email },
         {
           withCredentials: true,
+          withXSRFToken: true,
           headers: {
             "X-XSRF-TOKEN": decodeURIComponent(xsrfToken || ""),
           },
