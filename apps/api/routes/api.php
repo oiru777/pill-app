@@ -17,7 +17,6 @@ use App\Http\Controllers\UsageItemController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\UserController;
 
-Route::middleware('auth:sanctum')->get('/v1.0/users/me', [UserController::class, 'me']);
 Route::middleware(['web'])->prefix('/v1.0')->group(function () {
 
     // 認証系（ログイン、ログアウト、登録）

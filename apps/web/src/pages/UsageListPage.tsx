@@ -12,32 +12,12 @@ import {
   useToast,
   Button,
   ButtonGroup,
-  Textarea,
 } from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
 
-type Pill = {
-  id: number;
-  name: string;
-};
-
-type UsageItem = {
-  pill_id: number;
-  quantity: number;
-  pill: Pill;
-};
-
-type User = {
-  id: number;
-  name: string;
-};
-
-type Comment = {
-  id: number;
-  user: User;
-  content: string;
-  timestamp: string;
-};
-
+type Pill = { id: number; name: string };
+type UsageItem = { pill_id: number; quantity: number; pill: Pill };
+type User = { id: number; name: string };
 type UsageList = {
   id: number;
   user_id: number;
@@ -45,7 +25,6 @@ type UsageList = {
   timestamp: string;
   user: User;
   items: UsageItem[];
-  comments: Comment[];
 };
 
 function getBadgeColor(pillName: string) {
@@ -65,28 +44,11 @@ export default function UsageListPage() {
   const [usageLists, setUsageLists] = useState<UsageList[]>([]);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<"all" | "my">("all");
-  const [commentTexts, setCommentTexts] = useState<{ [key: number]: string }>(
-    {}
-  );
-  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const API_BASE = "http://localhost:8000";
 
-  // ✅ 現在ログイン中のユーザー取得
-  const fetchCurrentUser = async () => {
-    try {
-      const res = await axios.get(`${API_BASE}/api/v1.0/user`, {
-        withCredentials: true,
-        withXSRFToken: true,
-      });
-      setCurrentUserId(res.data.id);
-    } catch (err) {
-      console.error("ユーザー情報取得エラー:", err);
-    }
-  };
-
-  // ✅ 使用履歴一覧取得
   const fetchUsageLists = async () => {
     setLoading(true);
     try {
@@ -94,6 +56,7 @@ export default function UsageListPage() {
         mode === "all"
           ? `${API_BASE}/api/v1.0/usage-lists`
           : `${API_BASE}/api/v1.0/usage-lists/my`;
+
       const res = await axios.get(endpoint, { withCredentials: true });
       setUsageLists(res.data);
     } catch (error) {
@@ -108,88 +71,6 @@ export default function UsageListPage() {
       setLoading(false);
     }
   };
-
-  // ✅ コメント送信
-  const handleAddComment = async (usageId: number) => {
-    const content = commentTexts[usageId];
-    if (!content?.trim()) return;
-
-    try {
-      await axios.post(
-        `${API_BASE}/api/v1.0/usage-lists/${usageId}/comments`,
-        { content },
-        { withCredentials: true, withXSRFToken: true }
-      );
-      setCommentTexts((prev) => ({ ...prev, [usageId]: "" }));
-      fetchUsageLists(); // 再取得
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "コメントの送信に失敗しました",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // ✅ 編集
-  const handleEdit = async (usage: UsageList) => {
-    const newContent = prompt("新しい内容を入力してください", usage.content);
-    if (newContent === null) return;
-
-    try {
-      await axios.put(
-        `${API_BASE}/api/v1.0/usage-lists/${usage.id}`,
-        { content: newContent },
-        { withCredentials: true, withXSRFToken: true }
-      );
-      fetchUsageLists();
-      toast({
-        title: "更新しました",
-        status: "success",
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "更新に失敗しました",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-  };
-
-  // ✅ 削除
-  const handleDelete = async (usageId: number) => {
-    if (!window.confirm("本当に削除しますか？")) return;
-    try {
-      await axios.delete(`${API_BASE}/api/v1.0/usage-lists/${usageId}`, {
-        withCredentials: true,
-      });
-      fetchUsageLists();
-      toast({
-        title: "削除しました",
-        status: "info",
-        duration: 2000,
-        isClosable: true,
-      });
-    } catch (err) {
-      console.error(err);
-      toast({
-        title: "削除に失敗しました",
-        status: "error",
-        duration: 2000,
-        isClosable: true,
-      });
-    }
-  };
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, []);
 
   useEffect(() => {
     fetchUsageLists();
@@ -237,6 +118,8 @@ export default function UsageListPage() {
             borderRadius="md"
             shadow="sm"
             bg="white"
+            _hover={{ bg: "gray.50", cursor: "pointer" }}
+            onClick={() => navigate(`/usage/${usage.id}`)}
           >
             <HStack justify="space-between" mb={2}>
               <Text fontWeight="bold" fontSize="lg">
@@ -263,61 +146,6 @@ export default function UsageListPage() {
                 </HStack>
               ))}
             </VStack>
-
-            {/* ✅ 自分の記録のみ 編集・削除ボタン表示 */}
-            {usage.user_id === currentUserId && (
-              <ButtonGroup mt={3} size="sm">
-                <Button colorScheme="blue" onClick={() => handleEdit(usage)}>
-                  編集
-                </Button>
-                <Button
-                  colorScheme="red"
-                  variant="outline"
-                  onClick={() => handleDelete(usage.id)}
-                >
-                  削除
-                </Button>
-              </ButtonGroup>
-            )}
-
-            <Divider my={3} />
-
-            {/* ✅ コメント一覧 */}
-            <VStack align="stretch" spacing={2}>
-              {usage.comments?.map((comment) => (
-                <Box key={comment.id} p={2} bg="gray.50" borderRadius="md">
-                  <Text fontSize="sm" color="gray.700">
-                    {comment.content}
-                  </Text>
-                  <Text fontSize="xs" color="gray.500">
-                    {comment.user?.name ?? "不明"} ・{" "}
-                    {new Date(comment.timestamp).toLocaleString("ja-JP")}
-                  </Text>
-                </Box>
-              ))}
-            </VStack>
-
-            {/* ✅ コメント投稿欄 */}
-            <HStack mt={2}>
-              <Textarea
-                size="sm"
-                placeholder="コメントを書く..."
-                value={commentTexts[usage.id] || ""}
-                onChange={(e) =>
-                  setCommentTexts((prev) => ({
-                    ...prev,
-                    [usage.id]: e.target.value,
-                  }))
-                }
-              />
-              <Button
-                colorScheme="teal"
-                size="sm"
-                onClick={() => handleAddComment(usage.id)}
-              >
-                送信
-              </Button>
-            </HStack>
           </Box>
         ))}
       </VStack>

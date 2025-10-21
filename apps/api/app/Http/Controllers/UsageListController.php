@@ -17,7 +17,7 @@ class UsageListController extends Controller
     // 全ユーザーの記録（管理・共有用）
     public function index()
     {
-        $usages = UsageList::with(['items.pill', 'user'])
+        $usages = UsageList::with(['items.pill', 'user','comments.user'])
             ->orderBy('timestamp', 'desc')
             ->get();
 
@@ -103,7 +103,7 @@ class UsageListController extends Controller
      */
     public function show($id)
     {
-        $usageList = UsageList::with('items.pill')->findOrFail($id);
+        $usageList = UsageList::with('items.pill','user','comments.user','comments.user')->findOrFail($id);
         return response()->json($usageList);
     }
 
