@@ -1,24 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { Box, Heading, Spinner, VStack } from "@chakra-ui/react";
-import { Line } from "react-chartjs-2";
+import {
+  Box,
+  Heading,
+  Spinner,
+  VStack,
+  ButtonGroup,
+  Button,
+} from "@chakra-ui/react";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
-  LineElement,
   CategoryScale,
   LinearScale,
-  PointElement,
+  BarElement,
   Tooltip,
   Legend,
 } from "chart.js";
 
-ChartJS.register(
-  LineElement,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
 interface UsageData {
   timestamp: string;
@@ -26,80 +25,139 @@ interface UsageData {
   quantity: number;
 }
 
-// ✅ 線形回帰（単回帰）を計算する関数
-function calcTrendline(yValues: number[]) {
-  const n = yValues.length;
-  const xValues = Array.from({ length: n }, (_, i) => i + 1);
-
-  const sumX = xValues.reduce((a, b) => a + b, 0);
-  const sumY = yValues.reduce((a, b) => a + b, 0);
-  const sumXY = xValues.reduce((sum, x, i) => sum + x * yValues[i], 0);
-  const sumX2 = xValues.reduce((sum, x) => sum + x * x, 0);
-
-  const a = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX); // 傾き
-  const b = (sumY - a * sumX) / n; // 切片
-
-  // 回帰線の予測値を生成
-  return xValues.map((x) => a * x + b);
+// ✅ 日付フォーマット
+function getDayLabel(date: Date): string {
+  return date.toLocaleDateString("ja-JP");
 }
 
-const UsageLineChart: React.FC = () => {
-  const [groupedData, setGroupedData] = useState<Record<string, any> | null>(
-    null
-  );
+// ✅ 週の開始日（月曜始まり）
+function getWeekStart(date: Date): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  d.setDate(d.getDate() + diff);
+  return d.toLocaleDateString("ja-JP");
+}
+
+// ✅ 月のラベル
+function getMonthLabel(date: Date): string {
+  return `${date.getFullYear()}/${(date.getMonth() + 1)
+    .toString()
+    .padStart(2, "0")}`;
+}
+
+// ✅ 指定範囲内の全日を生成（欠損補完用）
+function generateAllDays(startDate: Date, endDate: Date): string[] {
+  const days: string[] = [];
+  const current = new Date(startDate);
+  while (current <= endDate) {
+    days.push(getDayLabel(new Date(current)));
+    current.setDate(current.getDate() + 1);
+  }
+  return days;
+}
+
+const UsageSummaryChart: React.FC = () => {
+  const [groupedData, setGroupedData] = useState<Record<
+    string,
+    Record<string, number>
+  > | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
+  const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
 
   useEffect(() => {
     fetch("http://localhost:8000/api/v1.0/usage-graph")
       .then((res) => res.json())
       .then((data: UsageData[]) => {
-        // 📅 データ整形
-        const grouped: Record<string, Record<string, number>> = {};
-        data.forEach((d) => {
-          const date = new Date(d.timestamp).toLocaleDateString("ja-JP");
-          if (!grouped[d.pill_name]) grouped[d.pill_name] = {};
-          grouped[d.pill_name][date] =
-            (grouped[d.pill_name][date] || 0) + d.quantity;
-        });
-
-        const allLabels = Array.from(
-          new Set(
-            data.map((d) => new Date(d.timestamp).toLocaleDateString("ja-JP"))
-          )
-        ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
-
-        setGroupedData(grouped);
-        setLabels(allLabels);
+        setGroupedData(processData(data, viewMode));
       });
-  }, []);
+  }, [viewMode]);
+
+  // ✅ データ整形（日/週/月）
+  const processData = (data: UsageData[], mode: "day" | "week" | "month") => {
+    if (data.length === 0) return {};
+
+    const grouped: Record<string, Record<string, number>> = {};
+
+    // 日付範囲の最小・最大を取得
+    const timestamps = data.map((d) => new Date(d.timestamp));
+    const minDate = new Date(Math.min(...timestamps.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...timestamps.map((d) => d.getTime())));
+
+    let allLabels: string[];
+
+    if (mode === "day") {
+      // ✅ 欠損日も含む全日ラベル生成
+      allLabels = generateAllDays(minDate, maxDate);
+    } else if (mode === "week") {
+      allLabels = Array.from(
+        new Set(data.map((d) => getWeekStart(new Date(d.timestamp))))
+      ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    } else {
+      allLabels = Array.from(
+        new Set(data.map((d) => getMonthLabel(new Date(d.timestamp))))
+      ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+    }
+
+    // 各薬ごとに集計
+    data.forEach((d) => {
+      const date = new Date(d.timestamp);
+      const key =
+        mode === "day"
+          ? getDayLabel(date)
+          : mode === "week"
+          ? getWeekStart(date)
+          : getMonthLabel(date);
+
+      if (!grouped[d.pill_name]) grouped[d.pill_name] = {};
+      grouped[d.pill_name][key] = (grouped[d.pill_name][key] || 0) + d.quantity;
+    });
+
+    setLabels(allLabels);
+    return grouped;
+  };
 
   if (!groupedData) return <Spinner />;
 
   return (
     <VStack spacing={6} align="stretch">
+      <Box textAlign="center">
+        <ButtonGroup isAttached variant="outline" colorScheme="blue">
+          <Button
+            onClick={() => setViewMode("day")}
+            isActive={viewMode === "day"}
+          >
+            日ごと
+          </Button>
+          <Button
+            onClick={() => setViewMode("week")}
+            isActive={viewMode === "week"}
+          >
+            週ごと
+          </Button>
+          <Button
+            onClick={() => setViewMode("month")}
+            isActive={viewMode === "month"}
+          >
+            月ごと
+          </Button>
+        </ButtonGroup>
+      </Box>
+
       {Object.entries(groupedData).map(([pillName, values]) => {
         const yData = labels.map((label) => values[label] || 0);
-        const trend = calcTrendline(yData);
 
         const chartData = {
           labels,
           datasets: [
             {
-              label: `${pillName} 使用量`,
+              label: `${pillName} の${
+                viewMode === "day" ? "日" : viewMode === "week" ? "週" : "月"
+              }ごとの使用量`,
               data: yData,
-              borderColor: "rgba(66, 153, 225, 0.8)",
-              backgroundColor: "rgba(66, 153, 225, 0.3)",
-              fill: false,
-              tension: 0.3,
-            },
-            {
-              label: `${pillName} トレンド`,
-              data: trend,
-              borderColor: "rgba(237, 100, 166, 0.8)",
-              borderDash: [6, 6],
-              pointRadius: 0,
-              fill: false,
-              tension: 0,
+              backgroundColor: "rgba(66, 153, 225, 0.6)",
+              borderColor: "rgba(66, 153, 225, 1)",
+              borderWidth: 1,
             },
           ],
         };
@@ -114,9 +172,11 @@ const UsageLineChart: React.FC = () => {
             shadow="md"
           >
             <Heading size="md" mb={3}>
-              {pillName} の使用量推移
+              {pillName} の
+              {viewMode === "day" ? "日" : viewMode === "week" ? "週" : "月"}
+              ごとの使用量
             </Heading>
-            <Line
+            <Bar
               data={chartData}
               options={{
                 responsive: true,
@@ -127,9 +187,19 @@ const UsageLineChart: React.FC = () => {
                 scales: {
                   y: {
                     beginAtZero: true,
-                    title: { display: true, text: "使用量" },
+                    title: { display: true, text: "合計使用量" },
                   },
-                  x: { title: { display: true, text: "日付" } },
+                  x: {
+                    title: {
+                      display: true,
+                      text:
+                        viewMode === "day"
+                          ? "日付（欠損日は0）"
+                          : viewMode === "week"
+                          ? "週の開始日（月曜）"
+                          : "年月",
+                    },
+                  },
                 },
               }}
             />
@@ -140,4 +210,4 @@ const UsageLineChart: React.FC = () => {
   );
 };
 
-export default UsageLineChart;
+export default UsageSummaryChart;
