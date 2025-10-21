@@ -158,6 +158,13 @@ export const HomePage: FC = () => {
         >
           グラフ
         </Button>
+        <Button
+          colorScheme="teal"
+          variant="outline"
+          onClick={() => navigate("/notice")}
+        >
+          通知
+        </Button>
       </VStack>
     </Box>
   );

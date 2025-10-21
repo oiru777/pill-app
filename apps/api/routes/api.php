@@ -14,8 +14,10 @@ use Illuminate\Support\Str;
 use App\Http\Controllers\PillController;
 use App\Http\Controllers\UsageListController;
 use App\Http\Controllers\UsageItemController;
+use App\Http\Controllers\CommentController;
+use App\Http\Controllers\UserController;
 
-
+Route::middleware('auth:sanctum')->get('/v1.0/users/me', [UserController::class, 'me']);
 Route::middleware(['web'])->prefix('/v1.0')->group(function () {
 
     // 認証系（ログイン、ログアウト、登録）
@@ -32,12 +34,15 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     Route::get('/usage-lists/my', [UsageListController::class, 'myLists']); // 自分の分
     Route::get('/usage-lists/{id}', [UsageListController::class, 'show']); // 詳細
     Route::post('/usage-lists', [UsageListController::class, 'store']); // 登録
+    Route::post('/usage-lists/{usageList}/comments', [CommentController::class, 'store']);
+    Route::get('/usage-lists/{usageList}/comments', [CommentController::class, 'index']);
 
     Route::get('/usage-graph', [UsageListController::class, 'graphData']);
 
     // 🔹 使用アイテム（UsageItem）
     Route::get('/usage-items', [UsageItemController::class, 'index']); // 一覧（usage_idで絞り込み可）
     Route::get('/usage-items/{id}', [UsageItemController::class, 'show']); // 詳細
+
 
     // パスワードリセットリンク送信
     Route::post('/forgot-password', function (Request $request) {
