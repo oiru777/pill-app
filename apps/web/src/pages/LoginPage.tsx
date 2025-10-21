@@ -5,13 +5,19 @@ import {
   Box,
   Button,
   Container,
-  CssBaseline,
-  TextField,
-  Typography,
-  Avatar,
+  Input,
+  FormControl,
+  FormLabel,
+  Heading,
+  VStack,
   Alert,
-} from "@mui/material";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+  AlertIcon,
+  Text,
+  useToast,
+  Avatar,
+  Link,
+} from "@chakra-ui/react";
+import { LockIcon } from "@chakra-ui/icons";
 import type { LoginFormProps } from "../types";
 import { useNavigate } from "react-router-dom";
 
@@ -21,6 +27,7 @@ export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+  const toast = useToast();
 
   const handleLogin = async () => {
     const url = "http://localhost:8000";
@@ -28,10 +35,8 @@ export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {
     axios.defaults.withCredentials = true;
 
     try {
-      // CSRFトークン取得（クッキーに XSRF-TOKEN がセットされる）
-      await axios.get("/sanctum/csrf-cookie", {
-        withCredentials: true,
-      });
+      // CSRFトークン取得
+      await axios.get("/sanctum/csrf-cookie", { withCredentials: true });
       console.log("==csrf-cookie success==");
 
       // Cookie から XSRF-TOKEN を取得してデコード
@@ -55,91 +60,102 @@ export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {
         }
       );
 
-      // ログイン後の処理
+      // 成功時処理
       onLogin(res.data);
-
       console.log("==login success==", res);
       setErrorMessage(null);
       setSuccessMessage("ログインに成功しました。");
+
+      toast({
+        title: "ログイン成功",
+        description: "ログインに成功しました。",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
     } catch (e: any) {
       console.error("===login error===", e);
       setSuccessMessage(null);
       setErrorMessage("ログインに失敗しました。");
+
+      toast({
+        title: "ログインエラー",
+        description: "メールアドレスまたはパスワードが正しくありません。",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
   return (
-    <Container component="main" maxWidth="xs">
-      <CssBaseline />
+    <Container maxW="sm" centerContent>
       <Box
-        sx={{
-          marginTop: 8,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-        }}
+        mt={12}
+        p={8}
+        w="100%"
+        borderWidth={1}
+        borderRadius="lg"
+        boxShadow="lg"
       >
-        <Avatar sx={{ m: 1, bgcolor: "secondary.main" }}>
-          <LockOutlinedIcon />
-        </Avatar>
-        <Typography component="h1" variant="h5">
-          ログイン
-        </Typography>
+        <VStack spacing={6}>
+          <Avatar bg="blue.500" icon={<LockIcon />} />
+          <Heading as="h1" size="lg">
+            ログイン
+          </Heading>
 
-        <Box sx={{ mt: 3, width: "100%" }}>
           {successMessage && (
-            <Alert severity="success" sx={{ mb: 2 }}>
+            <Alert status="success">
+              <AlertIcon />
               {successMessage}
             </Alert>
           )}
 
           {errorMessage && (
-            <Alert severity="error" sx={{ mb: 2 }}>
+            <Alert status="error">
+              <AlertIcon />
               {errorMessage}
             </Alert>
           )}
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="メールアドレス"
-            type="email"
-            value={loginId}
-            onChange={(e) => setLoginId(e.target.value)}
-          />
+          <FormControl id="email" isRequired>
+            <FormLabel>メールアドレス</FormLabel>
+            <Input
+              type="email"
+              value={loginId}
+              onChange={(e) => setLoginId(e.target.value)}
+              placeholder="your@email.com"
+            />
+          </FormControl>
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            label="パスワード"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <FormControl id="password" isRequired>
+            <FormLabel>パスワード</FormLabel>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+            />
+          </FormControl>
 
-          <Button
-            fullWidth
-            variant="contained"
-            color="primary"
-            sx={{ mt: 3, mb: 2 }}
-            onClick={handleLogin}
-          >
+          <Button colorScheme="blue" w="100%" onClick={handleLogin} mt={4}>
             ログイン
           </Button>
+
           <Button
-            fullWidth
-            variant="outlined"
-            sx={{ mt: 1 }}
-            onClick={() => navigate(`/register`)}
+            variant="outline"
+            w="100%"
+            onClick={() => navigate("/register")}
           >
             新規登録
           </Button>
-          <Button variant="text" onClick={() => navigate(`/forgotpassword`)}>
-            パスワード忘れた方はこちら
-          </Button>
-        </Box>
+
+          <Text fontSize="sm">
+            <Link color="blue.500" onClick={() => navigate("/forgotpassword")}>
+              パスワードをお忘れですか？
+            </Link>
+          </Text>
+        </VStack>
       </Box>
     </Container>
   );

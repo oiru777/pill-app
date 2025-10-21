@@ -3,12 +3,17 @@ import { useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 import {
   Box,
-  Typography,
-  TextField,
+  Heading,
+  Input,
+  FormControl,
+  FormLabel,
   Button,
   Alert,
-  Stack,
-} from "@mui/material";
+  AlertIcon,
+  VStack,
+  useToast,
+  Text,
+} from "@chakra-ui/react";
 
 export const ResetPasswordPage: React.FC = () => {
   const { token } = useParams();
@@ -19,11 +24,13 @@ export const ResetPasswordPage: React.FC = () => {
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
     try {
       await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
@@ -37,75 +44,94 @@ export const ResetPasswordPage: React.FC = () => {
           password,
           password_confirmation: passwordConfirmation,
         },
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
+
       setMessage("パスワードをリセットしました。ログインしてください。");
+      toast({
+        title: "パスワードリセット成功",
+        description: "新しいパスワードでログインできます。",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
     } catch (err: any) {
       console.error(err);
       setError("リセットに失敗しました。もう一度お試しください。");
+      toast({
+        title: "エラー",
+        description: "パスワードリセットに失敗しました。",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     }
   };
 
   return (
     <Box
-      component="form"
+      as="form"
       onSubmit={handleSubmit}
-      sx={{
-        maxWidth: 400,
-        mx: "auto",
-        mt: 6,
-        p: 3,
-        boxShadow: 3,
-        borderRadius: 2,
-        backgroundColor: "#fff",
-      }}
+      maxW="sm"
+      mx="auto"
+      mt={12}
+      p={8}
+      borderWidth={1}
+      borderRadius="lg"
+      boxShadow="lg"
+      bg="white"
     >
-      <Typography variant="h5" gutterBottom>
+      <Heading as="h2" size="lg" mb={4} textAlign="center">
         パスワード再設定
-      </Typography>
+      </Heading>
 
       {message && (
-        <Alert severity="success" sx={{ mb: 2 }}>
+        <Alert status="success" mb={4}>
+          <AlertIcon />
           {message}
         </Alert>
       )}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert status="error" mb={4}>
+          <AlertIcon />
           {error}
         </Alert>
       )}
 
-      <Stack spacing={2}>
-        <TextField
-          label="メールアドレス"
-          type="email"
-          value={email}
-          disabled
-          fullWidth
-        />
-        <TextField
-          label="新しいパスワード"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          fullWidth
-        />
-        <TextField
-          label="確認用パスワード"
-          type="password"
-          value={passwordConfirmation}
-          onChange={(e) => setPasswordConfirmation(e.target.value)}
-          required
-          fullWidth
-        />
+      <VStack spacing={4} align="stretch">
+        <FormControl>
+          <FormLabel>メールアドレス</FormLabel>
+          <Input type="email" value={email} isDisabled />
+        </FormControl>
 
-        <Button type="submit" variant="contained" color="primary" fullWidth>
+        <FormControl isRequired>
+          <FormLabel>新しいパスワード</FormLabel>
+          <Input
+            type="password"
+            value={password}
+            placeholder="新しいパスワードを入力"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </FormControl>
+
+        <FormControl isRequired>
+          <FormLabel>確認用パスワード</FormLabel>
+          <Input
+            type="password"
+            value={passwordConfirmation}
+            placeholder="もう一度入力してください"
+            onChange={(e) => setPasswordConfirmation(e.target.value)}
+          />
+        </FormControl>
+
+        <Button type="submit" colorScheme="blue" w="100%" mt={2}>
           パスワードをリセット
         </Button>
-      </Stack>
+      </VStack>
+
+      <Text fontSize="sm" color="gray.500" mt={4} textAlign="center">
+        新しいパスワードでログインしてください。
+      </Text>
     </Box>
   );
 };

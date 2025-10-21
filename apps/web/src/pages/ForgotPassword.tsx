@@ -1,23 +1,39 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { TextField, Button, Box, Typography, Alert } from "@mui/material";
+import {
+  Box,
+  Heading,
+  FormControl,
+  FormLabel,
+  Input,
+  Button,
+  Alert,
+  AlertIcon,
+  VStack,
+  Text,
+  useToast,
+  ChakraProvider,
+  extendTheme,
+} from "@chakra-ui/react";
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const toast = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage("");
     setError("");
+
     try {
-      // CSRFトークン取得（XSRF-TOKEN Cookie をセット）
+      // CSRF トークン取得
       await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
       });
 
-      // Cookie からトークンを取得してデコード
+      // Cookie から XSRF-TOKEN を取得
       const xsrfToken = document.cookie
         .split("; ")
         .find((row) => row.startsWith("XSRF-TOKEN="))
@@ -36,60 +52,77 @@ export const ForgotPassword: React.FC = () => {
       );
 
       setMessage("リセットリンクを送信しました。メールを確認してください。");
+      toast({
+        title: "送信完了",
+        description: "リセットリンクをメールに送信しました。",
+        status: "success",
+        duration: 4000,
+        isClosable: true,
+      });
     } catch (err: any) {
       console.error(err);
       setError("送信に失敗しました。メールアドレスを確認してください。");
+      toast({
+        title: "エラー",
+        description: "メール送信に失敗しました。",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     }
   };
 
   return (
-    <Box
-      component="form"
-      onSubmit={handleSubmit}
-      sx={{
-        maxWidth: 400,
-        mx: "auto",
-        mt: 6,
-        p: 3,
-        boxShadow: 3,
-        borderRadius: 2,
-      }}
-    >
-      <Typography variant="h5" gutterBottom>
-        パスワード再設定
-      </Typography>
-
-      <TextField
-        label="登録済みメールアドレス"
-        type="email"
-        fullWidth
-        required
-        margin="normal"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        fullWidth
-        sx={{ mt: 2 }}
+    <ChakraProvider theme={extendTheme()}>
+      <Box
+        as="form"
+        onSubmit={handleSubmit}
+        maxW="sm"
+        mx="auto"
+        mt={12}
+        p={8}
+        borderWidth={1}
+        borderRadius="lg"
+        boxShadow="lg"
+        bg="white"
       >
-        リセットリンクを送信
-      </Button>
+        <Heading as="h2" size="lg" mb={6} textAlign="center">
+          パスワード再設定
+        </Heading>
 
-      {message && (
-        <Alert severity="success" sx={{ mt: 2 }}>
-          {message}
-        </Alert>
-      )}
+        <VStack spacing={4} align="stretch">
+          {message && (
+            <Alert status="success">
+              <AlertIcon />
+              {message}
+            </Alert>
+          )}
+          {error && (
+            <Alert status="error">
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
 
-      {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
-          {error}
-        </Alert>
-      )}
-    </Box>
+          <FormControl isRequired>
+            <FormLabel>登録済みメールアドレス</FormLabel>
+            <Input
+              type="email"
+              placeholder="example@mail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </FormControl>
+
+          <Button colorScheme="blue" type="submit" w="100%">
+            リセットリンクを送信
+          </Button>
+        </VStack>
+
+        <Text fontSize="sm" color="gray.500" mt={4} textAlign="center">
+          登録済みメールアドレスにリセットリンクをお送りします。
+        </Text>
+      </Box>
+    </ChakraProvider>
   );
 };

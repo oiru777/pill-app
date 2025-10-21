@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import {
   Box,
-  TextField,
   Button,
-  Typography,
-  Stack,
+  FormControl,
+  FormLabel,
+  Input,
+  Heading,
+  VStack,
   Alert,
-} from "@mui/material";
+  AlertIcon,
+  useToast,
+  ChakraProvider,
+  extendTheme,
+} from "@chakra-ui/react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -16,6 +22,8 @@ type Props = {
 
 export const RegisterPage: React.FC<Props> = ({ onLogin }) => {
   const navigate = useNavigate();
+  const toast = useToast();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -36,80 +44,123 @@ export const RegisterPage: React.FC<Props> = ({ onLogin }) => {
     setError(null);
 
     try {
-      // CSRF cookie 取得（Sanctum用）
       axios.defaults.withCredentials = true;
-      await axios.get("http://localhost/sanctum/csrf-cookie", {
+
+      // CSRFトークンを取得
+      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
         withXSRFToken: true,
       });
 
-      // 登録リクエスト送信
-      const res = await axios.post("http://localhost/api/v1.0/register", form, {
-        withCredentials: true,
-        withXSRFToken: true,
-      });
+      // 登録API呼び出し
+      const res = await axios.post(
+        "http://localhost:8000/api/v1.0/register",
+        form,
+        {
+          withCredentials: true,
+          withXSRFToken: true,
+        }
+      );
 
       console.log("✅ 登録成功:", res.data);
+      toast({
+        title: "登録成功",
+        description: "アカウントを作成しました！",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+
       onLogin(res.data);
       navigate("/");
     } catch (err: any) {
       console.error("❌ 登録失敗:", err);
-      if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("登録に失敗しました。");
-      }
+      const message =
+        err.response?.data?.message ||
+        "登録に失敗しました。もう一度お試しください。";
+      setError(message);
+      toast({
+        title: "エラー",
+        description: message,
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     }
   };
 
   return (
-    <Box maxWidth={400} mx="auto" mt={5}>
-      <Typography variant="h5" gutterBottom>
-        新規登録
-      </Typography>
+    <ChakraProvider theme={extendTheme()}>
+      <Box
+        maxW="sm"
+        mx="auto"
+        mt={10}
+        p={8}
+        borderWidth={1}
+        borderRadius="lg"
+        boxShadow="lg"
+        bg="white"
+      >
+        <Heading as="h2" size="lg" mb={6} textAlign="center">
+          新規登録
+        </Heading>
 
-      <Stack spacing={2}>
-        {error && <Alert severity="error">{error}</Alert>}
+        <VStack spacing={4} align="stretch">
+          {error && (
+            <Alert status="error">
+              <AlertIcon />
+              {error}
+            </Alert>
+          )}
 
-        <TextField
-          label="名前"
-          name="name"
-          value={form.name}
-          onChange={handleChange}
-          fullWidth
-        />
+          <FormControl isRequired>
+            <FormLabel>名前</FormLabel>
+            <Input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              placeholder=""
+            />
+          </FormControl>
 
-        <TextField
-          label="メールアドレス"
-          name="email"
-          type="email"
-          value={form.email}
-          onChange={handleChange}
-          fullWidth
-        />
+          <FormControl isRequired>
+            <FormLabel>メールアドレス</FormLabel>
+            <Input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="example@mail.com"
+            />
+          </FormControl>
 
-        <TextField
-          label="パスワード"
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={handleChange}
-          fullWidth
-        />
+          <FormControl isRequired>
+            <FormLabel>パスワード</FormLabel>
+            <Input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="********"
+            />
+          </FormControl>
 
-        <TextField
-          label="パスワード（確認）"
-          name="password_confirmation"
-          type="password"
-          value={form.password_confirmation}
-          onChange={handleChange}
-          fullWidth
-        />
+          <FormControl isRequired>
+            <FormLabel>パスワード（確認）</FormLabel>
+            <Input
+              name="password_confirmation"
+              type="password"
+              value={form.password_confirmation}
+              onChange={handleChange}
+              placeholder="********"
+            />
+          </FormControl>
 
-        <Button variant="contained" color="primary" onClick={handleRegister}>
-          登録する
-        </Button>
-      </Stack>
-    </Box>
+          <Button colorScheme="blue" w="100%" onClick={handleRegister}>
+            登録する
+          </Button>
+        </VStack>
+      </Box>
+    </ChakraProvider>
   );
 };
