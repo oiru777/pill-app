@@ -10,6 +10,8 @@ import {
   Spinner,
   Badge,
   useToast,
+  Button,
+  ButtonGroup,
 } from "@chakra-ui/react";
 
 type Pill = {
@@ -23,61 +25,90 @@ type UsageItem = {
   pill: Pill;
 };
 
+type User = {
+  id: number;
+  name: string;
+};
+
 type UsageList = {
   id: number;
-  user_id: string;
+  user_id: number;
   content: string;
   timestamp: string;
+  user: User;
   items: UsageItem[];
 };
+
 function getBadgeColor(pillName: string) {
   switch (pillName.toLowerCase()) {
     case "bron":
-      return "teal"; // 青系
+      return "teal";
     case "restamin":
-      return "orange"; // オレンジ系
+      return "orange";
     case "pabrongold":
-      return "yellow"; // 黄色系
+      return "yellow";
     default:
-      return "gray"; // その他はグレー
+      return "gray";
   }
 }
+
 export default function UsageListPage() {
   const [usageLists, setUsageLists] = useState<UsageList[]>([]);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"all" | "my">("all"); // ← 切り替え用
   const toast = useToast();
 
-  useEffect(() => {
-    const fetchUsageLists = async () => {
-      setLoading(true);
-      try {
-        const res = await axios.get(
-          "http://localhost:8000/api/v1.0/usage-lists",
-          {
-            withCredentials: true,
-          }
-        );
-        setUsageLists(res.data);
-      } catch (error) {
-        toast({
-          title: "記録の取得に失敗しました",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  const API_BASE = "http://localhost:8000";
 
+  const fetchUsageLists = async () => {
+    setLoading(true);
+    try {
+      const endpoint =
+        mode === "all"
+          ? `${API_BASE}/api/v1.0/usage-lists`
+          : `${API_BASE}/api/v1.0/usage-lists/my`;
+
+      const res = await axios.get(endpoint, { withCredentials: true });
+      setUsageLists(res.data);
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "記録の取得に失敗しました",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchUsageLists();
-  }, [toast]);
+    // mode が変わったら再取得
+  }, [mode]);
 
   return (
     <Box maxW="800px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
       <Heading mb={4} textAlign="center">
         使用履歴一覧
       </Heading>
+
+      {/* ✅ 切り替えボタン */}
+      <ButtonGroup mb={6} justifyContent="center" width="100%">
+        <Button
+          colorScheme={mode === "my" ? "teal" : "gray"}
+          onClick={() => setMode("my")}
+        >
+          自分の記録
+        </Button>
+        <Button
+          colorScheme={mode === "all" ? "teal" : "gray"}
+          onClick={() => setMode("all")}
+        >
+          みんなの記録
+        </Button>
+      </ButtonGroup>
 
       {loading && (
         <Box textAlign="center" my={4}>
@@ -99,16 +130,24 @@ export default function UsageListPage() {
             borderWidth={1}
             borderRadius="md"
             shadow="sm"
+            bg="white"
           >
             <HStack justify="space-between" mb={2}>
               <Text fontWeight="bold" fontSize="lg">
                 {usage.content || "無題の使用記録"}
               </Text>
               <Text fontSize="sm" color="gray.500">
-                {new Date(usage.timestamp).toLocaleString()}
+                {new Date(usage.timestamp).toLocaleString("ja-JP")}
               </Text>
             </HStack>
+
+            {/* ✅ ユーザー名を表示 */}
+            <Text fontSize="sm" color="gray.600" mb={2}>
+              記録者: <b>{usage.user?.name ?? "不明"}</b>
+            </Text>
+
             <Divider mb={3} />
+
             <VStack align="start" spacing={1}>
               {usage.items.map((item) => (
                 <HStack key={item.pill_id} spacing={4}>

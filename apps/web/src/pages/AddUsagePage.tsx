@@ -41,6 +41,20 @@ export default function AddUsagePage() {
   );
   const [pills, setPills] = useState<Pill[]>([]);
   const [user, setUser] = useState<any>(null);
+  // 現在日時をdatetime-local用の形式で取得する関数
+  const getCurrentDateTimeLocal = () => {
+    const now = new Date();
+    // UTC → JST に9時間（= 9 * 60 * 60 * 1000 ミリ秒）足す
+    const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    return jst.toISOString().slice(0, 16);
+  };
+
+  // 初期値セット（state?.timestampがない場合のみ現在日時セット）
+  useEffect(() => {
+    if (!state?.timestamp) {
+      setTimestamp(getCurrentDateTimeLocal());
+    }
+  }, [state]);
 
   // pillsデータをAPIから取得（例）
   useEffect(() => {

@@ -12,11 +12,29 @@ class UsageListController extends Controller
     /**
      * 一覧取得（関連アイテムと薬情報付き）
      */
+    // App\Http\Controllers\Api\UsageListController.php
+
+    // 全ユーザーの記録（管理・共有用）
     public function index()
     {
-        return UsageList::with('items.pill')
-            ->orderByDesc('timestamp')
+        $usages = UsageList::with(['items.pill', 'user'])
+            ->orderBy('timestamp', 'desc')
             ->get();
+
+        return response()->json($usages);
+    }
+
+    // 👤 自分の記録のみ
+    public function myLists(Request $request)
+    {
+        $user = $request->user();
+
+        $usages = UsageList::with(['items.pill', 'user'])
+            ->where('user_id', $user->id)
+            ->orderBy('timestamp', 'desc')
+            ->get();
+
+        return response()->json($usages);
     }
 
     /**

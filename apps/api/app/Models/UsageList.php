@@ -14,4 +14,9 @@ class UsageList extends Model
     {
         return $this->hasMany(UsageItem::class, 'usage_id');
     }
+    public function user()
+{
+    return $this->belongsTo(User::class);
+}
+
 }
