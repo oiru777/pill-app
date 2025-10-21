@@ -56,6 +56,27 @@ function generateAllDays(startDate: Date, endDate: Date): string[] {
   }
   return days;
 }
+// ✅ 週範囲の全ラベル生成（月曜始まり）
+function generateAllWeeks(startDate: Date, endDate: Date): string[] {
+  const weeks: string[] = [];
+  let current = new Date(getWeekStart(startDate));
+  while (current <= endDate) {
+    weeks.push(getWeekStart(new Date(current)));
+    current.setDate(current.getDate() + 7);
+  }
+  return weeks;
+}
+
+// ✅ 月範囲の全ラベル生成
+function generateAllMonths(startDate: Date, endDate: Date): string[] {
+  const months: string[] = [];
+  const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+  while (current <= endDate) {
+    months.push(getMonthLabel(new Date(current)));
+    current.setMonth(current.getMonth() + 1);
+  }
+  return months;
+}
 
 const UsageSummaryChart: React.FC = () => {
   const [groupedData, setGroupedData] = useState<Record<
@@ -87,16 +108,11 @@ const UsageSummaryChart: React.FC = () => {
     let allLabels: string[];
 
     if (mode === "day") {
-      // ✅ 欠損日も含む全日ラベル生成
       allLabels = generateAllDays(minDate, maxDate);
     } else if (mode === "week") {
-      allLabels = Array.from(
-        new Set(data.map((d) => getWeekStart(new Date(d.timestamp))))
-      ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+      allLabels = generateAllWeeks(minDate, maxDate);
     } else {
-      allLabels = Array.from(
-        new Set(data.map((d) => getMonthLabel(new Date(d.timestamp))))
-      ).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+      allLabels = generateAllMonths(minDate, maxDate);
     }
 
     // 各薬ごとに集計
