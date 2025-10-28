@@ -57,7 +57,7 @@ class UsageListController extends Controller
     } else {
         // month 指定なし → 全件取得
         $lists = UsageList::with(['items.pill', 'user'])
-            ->where('user_id', 3) // 実際は $user->id
+            ->where('user_id', $user->id) 
             ->orderBy('timestamp', 'asc')
             ->get();
     }
