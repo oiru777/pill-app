@@ -95,9 +95,9 @@ export default function AddUsagePage() {
       const medicon = pills.find((p) => p.name === "メジコン");
       if (medicon && value === medicon.id) {
         toast({
-          title: "⚠️ メジコン注意",
+          title: "メジコンはSSRIとの併用に注意してください！",
           description:
-            "SSRIとの飲み合わせに注意してください！\n服用しないでください:\n- ジェイゾロフト\n- デプロメール\n- ルボックス\n- パキシル\n- レクサプロ",
+            "以下の薬(SSRI)を服用している場合、セロトニン症候群を引き起こします。:\n- ジェイゾロフト\n- デプロメール\n- ルボックス\n- パキシル\n- レクサプロ",
           status: "warning",
           duration: 10000,
           isClosable: true,
