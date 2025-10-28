@@ -29,12 +29,14 @@ type UsageList = {
 
 function getBadgeColor(pillName: string) {
   switch (pillName.toLowerCase()) {
-    case "bron":
-      return "teal";
-    case "restamin":
+    case "ブロン":
+      return "blue";
+    case "レスタミン":
       return "orange";
-    case "pabrongold":
+    case "パブロンゴールド":
       return "yellow";
+    case "メジコン":
+      return "purple";
     default:
       return "gray";
   }

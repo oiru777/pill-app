@@ -151,6 +151,22 @@ const UsageSummaryChart: React.FC = () => {
 
   if (!groupedData) return <Spinner />;
 
+  // 薬ごとの色を決める関数
+  function getPillColor(pillName: string): string {
+    switch (pillName.toLowerCase()) {
+      case "ブロン":
+        return "rgba(66, 153, 225, 0.6)"; // blue
+      case "レスタミン":
+        return "rgba(250, 176, 51, 0.6)"; // orange
+      case "パブロンゴールド":
+        return "rgba(245, 223, 77, 0.6)"; // yellow
+      case "メジコン":
+        return "rgba(168, 85, 247, 0.6)"; // purple
+      default:
+        return "rgba(160, 160, 160, 0.6)"; // gray
+    }
+  }
+
   return (
     <VStack spacing={6} align="stretch">
       <Box textAlign="center">
@@ -175,9 +191,9 @@ const UsageSummaryChart: React.FC = () => {
           </Button>
         </ButtonGroup>
       </Box>
-
-      {Object.entries(groupedData).map(([pillName, values]) => {
+      {Object.entries(groupedData).map(([pillName, values], index) => {
         const yData = labels.map((label) => values[label] || 0);
+        const color = getPillColor(pillName);
 
         const chartData = {
           labels,
@@ -187,8 +203,8 @@ const UsageSummaryChart: React.FC = () => {
                 viewMode === "day" ? "日" : viewMode === "week" ? "週" : "月"
               }ごとの使用量`,
               data: yData,
-              backgroundColor: "rgba(66, 153, 225, 0.6)",
-              borderColor: "rgba(66, 153, 225, 1)",
+              backgroundColor: color,
+              borderColor: color.replace("0.6", "1"), // 不透明に
               borderWidth: 1,
             },
           ],

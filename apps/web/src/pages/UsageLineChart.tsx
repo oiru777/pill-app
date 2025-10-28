@@ -150,6 +150,38 @@ const UsageSummaryChart: React.FC = () => {
 
   if (!groupedData) return <Spinner />;
 
+  // datasets を作る
+  const datasets = Object.entries(groupedData).map(([pillName, values]) => {
+    const yData = labels.map((label) => values[label] || 0);
+    const color = getPillColor(pillName);
+
+    return {
+      label: pillName,
+      data: yData,
+      backgroundColor: color,
+      borderColor: color.replace("0.6", "1"),
+      borderWidth: 1,
+    };
+  });
+
+  const chartData = { labels, datasets };
+
+  // 薬ごとの色を決める関数
+  function getPillColor(pillName: string): string {
+    switch (pillName.toLowerCase()) {
+      case "ブロン":
+        return "rgba(66, 153, 225, 0.6)"; // blue
+      case "レスタミン":
+        return "rgba(250, 176, 51, 0.6)"; // orange
+      case "パブロンゴールド":
+        return "rgba(245, 223, 77, 0.6)"; // yellow
+      case "メジコン":
+        return "rgba(168, 85, 247, 0.6)"; // purple
+      default:
+        return "rgba(160, 160, 160, 0.6)"; // gray
+    }
+  }
+
   return (
     <VStack spacing={6} align="stretch">
       {/* 全件 / 今月切替 */}
@@ -169,7 +201,6 @@ const UsageSummaryChart: React.FC = () => {
           </Button>
         </ButtonGroup>
       </Box>
-
       {/* 日/週/月切替 */}
       <Box textAlign="center">
         <ButtonGroup isAttached variant="outline" colorScheme="blue" mb={3}>
@@ -193,69 +224,40 @@ const UsageSummaryChart: React.FC = () => {
           </Button>
         </ButtonGroup>
       </Box>
-
-      {Object.entries(groupedData).map(([pillName, values]) => {
-        const yData = labels.map((label) => values[label] || 0);
-
-        const chartData = {
-          labels,
-          datasets: [
-            {
-              label: `${pillName} の${
-                viewMode === "day" ? "日" : viewMode === "week" ? "週" : "月"
-              }ごとの使用量`,
-              data: yData,
-              backgroundColor: "rgba(66, 153, 225, 0.6)",
-              borderColor: "rgba(66, 153, 225, 1)",
-              borderWidth: 1,
+      return (
+      <Box p={5} borderWidth="1px" borderRadius="md" bg="white" shadow="md">
+        <Heading size="md" mb={3}>
+          使用量グラフ
+        </Heading>
+        <Bar
+          data={chartData}
+          options={{
+            responsive: true,
+            plugins: {
+              legend: { position: "bottom" },
+              tooltip: { mode: "index", intersect: false },
             },
-          ],
-        };
-
-        return (
-          <Box
-            key={pillName}
-            p={5}
-            borderWidth="1px"
-            borderRadius="md"
-            bg="white"
-            shadow="md"
-          >
-            <Heading size="md" mb={3}>
-              {pillName} の
-              {viewMode === "day" ? "日" : viewMode === "week" ? "週" : "月"}
-              ごとの使用量
-            </Heading>
-            <Bar
-              data={chartData}
-              options={{
-                responsive: true,
-                plugins: {
-                  legend: { position: "bottom" },
-                  tooltip: { mode: "index", intersect: false },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: "合計使用量" },
+              },
+              x: {
+                title: {
+                  display: true,
+                  text:
+                    viewMode === "day"
+                      ? "日付（欠損日は0）"
+                      : viewMode === "week"
+                      ? "週の開始日（月曜）"
+                      : "年月",
                 },
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    title: { display: true, text: "合計使用量" },
-                  },
-                  x: {
-                    title: {
-                      display: true,
-                      text:
-                        viewMode === "day"
-                          ? "日付（欠損日は0）"
-                          : viewMode === "week"
-                          ? "週の開始日（月曜）"
-                          : "年月",
-                    },
-                  },
-                },
-              }}
-            />
-          </Box>
-        );
-      })}
+              },
+            },
+          }}
+        />
+      </Box>
+      );
     </VStack>
   );
 };
