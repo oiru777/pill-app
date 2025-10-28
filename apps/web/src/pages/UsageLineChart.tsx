@@ -247,7 +247,7 @@ const UsageSummaryChart: React.FC = () => {
                   display: true,
                   text:
                     viewMode === "day"
-                      ? "日付（欠損日は0）"
+                      ? "日付"
                       : viewMode === "week"
                       ? "週の開始日（月曜）"
                       : "年月",
