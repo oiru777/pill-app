@@ -43,10 +43,6 @@ const App: React.FC = () => {
             element={<ResetPasswordPage />}
           />
           <Route path="/Verified" element={<Verified />} />
-          <Route
-            path="/reset-password/:token"
-            element={<ResetPasswordPage />}
-          />
         </Routes>
       </div>
     </Router>

@@ -15,6 +15,7 @@ import {
   NumberInputField,
 } from "@chakra-ui/react";
 import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 type Pill = {
   id: number;
@@ -40,6 +41,7 @@ export default function AddUsagePage() {
   );
   const [pills, setPills] = useState<Pill[]>([]);
   const [user, setUser] = useState<any>(null);
+  const navigate = useNavigate();
 
   const getCurrentDateTimeLocal = () => {
     const now = new Date();
@@ -190,6 +192,12 @@ export default function AddUsagePage() {
   return (
     <Box maxW="600px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
       <VStack spacing={4} align="stretch">
+        <Box textAlign="center">
+          <Button colorScheme="teal" onClick={() => navigate("/")}>
+            ホームに戻る
+          </Button>
+        </Box>
+
         <FormControl isRequired>
           <FormLabel>内容</FormLabel>
           <Textarea

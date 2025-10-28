@@ -50,14 +50,14 @@ class UsageListController extends Controller
         $endOfMonth = Carbon::parse($month)->endOfMonth();
 
         $lists = UsageList::with(['items.pill', 'user'])
-            ->where('user_id', 3) 
+            ->where('user_id', $user->id) 
             ->whereBetween('timestamp', [$startOfMonth, $endOfMonth])
             ->orderBy('timestamp', 'asc')
             ->get();
     } else {
         // month 指定なし → 全件取得
         $lists = UsageList::with(['items.pill', 'user'])
-            ->where('user_id', 3) 
+            ->where('user_id', $user->id) 
             ->orderBy('timestamp', 'asc')
             ->get();
     }

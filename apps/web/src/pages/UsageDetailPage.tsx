@@ -78,6 +78,7 @@ export default function UsageDetailPage() {
     try {
       await axios.delete(`${API_BASE}/api/v1.0/usage-lists/${id}`, {
         withCredentials: true,
+        withXSRFToken: true,
       });
       toast({ title: "削除しました", status: "info", duration: 2000 });
       navigate("/usage");
@@ -99,7 +100,7 @@ export default function UsageDetailPage() {
       await axios.put(
         `${API_BASE}/api/v1.0/usage-lists/${id}`,
         { content: newContent },
-        { withCredentials: true }
+        { withCredentials: true, withXSRFToken: true }
       );
       toast({ title: "更新しました", status: "success", duration: 2000 });
       fetchUsage();
@@ -133,6 +134,20 @@ export default function UsageDetailPage() {
       });
     }
   };
+  function getBadgeColor(pillName: string) {
+    switch (pillName.toLowerCase()) {
+      case "ブロン":
+        return "blue";
+      case "レスタミン":
+        return "orange";
+      case "パブロンゴールド":
+        return "yellow";
+      case "メジコン":
+        return "purple";
+      default:
+        return "gray";
+    }
+  }
 
   useEffect(() => {
     fetchCurrentUser();
@@ -174,7 +189,9 @@ export default function UsageDetailPage() {
         {usage.items?.length ? (
           usage.items.map((item) => (
             <HStack key={item.pill_id} spacing={4}>
-              <Badge colorScheme="teal">{item.pill.name}</Badge>
+              <Badge colorScheme={getBadgeColor(item.pill.name)}>
+                {item.pill.name}
+              </Badge>
               <Text>数量: {item.quantity}</Text>
             </HStack>
           ))
