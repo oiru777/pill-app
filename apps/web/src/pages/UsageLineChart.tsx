@@ -6,6 +6,7 @@ import {
   VStack,
   ButtonGroup,
   Button,
+  Input,
 } from "@chakra-ui/react";
 import { Bar } from "react-chartjs-2";
 import {
@@ -25,12 +26,12 @@ interface UsageData {
   quantity: number;
 }
 
-// ✅ 日付フォーマット
+// 日付フォーマット
 function getDayLabel(date: Date): string {
   return date.toLocaleDateString("ja-JP");
 }
 
-// ✅ 週の開始日（月曜始まり）
+// 週の開始日（月曜始まり）
 function getWeekStart(date: Date): string {
   const d = new Date(date);
   const day = d.getDay();
@@ -39,14 +40,14 @@ function getWeekStart(date: Date): string {
   return d.toLocaleDateString("ja-JP");
 }
 
-// ✅ 月のラベル
+// 月のラベル
 function getMonthLabel(date: Date): string {
   return `${date.getFullYear()}/${(date.getMonth() + 1)
     .toString()
     .padStart(2, "0")}`;
 }
 
-// ✅ 指定範囲内の全日を生成（欠損補完用）
+// 指定範囲内の全日を生成
 function generateAllDays(startDate: Date, endDate: Date): string[] {
   const days: string[] = [];
   const current = new Date(startDate);
@@ -57,7 +58,7 @@ function generateAllDays(startDate: Date, endDate: Date): string[] {
   return days;
 }
 
-// ✅ 週範囲の全ラベル生成（月曜始まり）
+// 週範囲の全ラベル生成
 function generateAllWeeks(startDate: Date, endDate: Date): string[] {
   const weeks: string[] = [];
   let current = new Date(getWeekStart(startDate));
@@ -68,7 +69,7 @@ function generateAllWeeks(startDate: Date, endDate: Date): string[] {
   return weeks;
 }
 
-// ✅ 月範囲の全ラベル生成
+// 月範囲の全ラベル生成
 function generateAllMonths(startDate: Date, endDate: Date): string[] {
   const months: string[] = [];
   const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
@@ -86,25 +87,27 @@ const UsageSummaryChart: React.FC = () => {
   > | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
-  const [monthFilter, setMonthFilter] = useState<string | null>(null); // null=全件, 'YYYY-MM'=月指定
+  const [monthFilter, setMonthFilter] = useState<null | "current" | string>(
+    null
+  ); // null=全件, "current"=今月, "YYYY-MM"=指定月
 
   useEffect(() => {
     const fetchUsageGraph = async () => {
       try {
-        const url = monthFilter
-          ? `http://localhost:8000/api/v1.0/usage-graph?month=${monthFilter}`
-          : "http://localhost:8000/api/v1.0/usage-graph";
+        let url = "http://localhost:8000/api/v1.0/usage-graph";
+        if (monthFilter === "current") {
+          const thisMonth = new Date().toISOString().slice(0, 7);
+          url += `?month=${thisMonth}`;
+        } else if (monthFilter && monthFilter !== "current") {
+          url += `?month=${monthFilter}`;
+        }
 
-        const res = await fetch(url, {
-          credentials: "include",
-        });
-
+        const res = await fetch(url, { credentials: "include" });
         if (!res.ok) {
           const text = await res.text();
           console.error("サーバーエラー:", res.status, text);
           throw new Error(`サーバーエラー: ${res.status}`);
         }
-
         const data: UsageData[] = await res.json();
         setGroupedData(processData(data, viewMode));
       } catch (err) {
@@ -115,7 +118,6 @@ const UsageSummaryChart: React.FC = () => {
     fetchUsageGraph();
   }, [viewMode, monthFilter]);
 
-  // ✅ データ整形（日/週/月）
   const processData = (data: UsageData[], mode: "day" | "week" | "month") => {
     if (data.length === 0) return {};
 
@@ -126,7 +128,6 @@ const UsageSummaryChart: React.FC = () => {
     const maxDate = new Date(Math.max(...timestamps.map((d) => d.getTime())));
 
     let allLabels: string[];
-
     if (mode === "day") allLabels = generateAllDays(minDate, maxDate);
     else if (mode === "week") allLabels = generateAllWeeks(minDate, maxDate);
     else allLabels = generateAllMonths(minDate, maxDate);
@@ -148,59 +149,68 @@ const UsageSummaryChart: React.FC = () => {
     return grouped;
   };
 
-  if (!groupedData) return <Spinner />;
-
-  // datasets を作る
-  const datasets = Object.entries(groupedData).map(([pillName, values]) => {
-    const yData = labels.map((label) => values[label] || 0);
-    const color = getPillColor(pillName);
-
-    return {
-      label: pillName,
-      data: yData,
-      backgroundColor: color,
-      borderColor: color.replace("0.6", "1"),
-      borderWidth: 1,
-    };
-  });
-
-  const chartData = { labels, datasets };
-
-  // 薬ごとの色を決める関数
   function getPillColor(pillName: string): string {
     switch (pillName.toLowerCase()) {
       case "ブロン":
-        return "rgba(66, 153, 225, 0.6)"; // blue
+        return "rgba(66, 153, 225, 0.6)";
       case "レスタミン":
-        return "rgba(250, 176, 51, 0.6)"; // orange
+        return "rgba(250, 176, 51, 0.6)";
       case "パブロンゴールド":
-        return "rgba(245, 223, 77, 0.6)"; // yellow
+        return "rgba(245, 223, 77, 0.6)";
       case "メジコン":
-        return "rgba(168, 85, 247, 0.6)"; // purple
+        return "rgba(168, 85, 247, 0.6)";
       default:
-        return "rgba(160, 160, 160, 0.6)"; // gray
+        return "rgba(160, 160, 160, 0.6)";
     }
   }
 
+  const datasets = groupedData
+    ? Object.entries(groupedData).map(([pillName, values]) => {
+        const yData = labels.map((label) => values[label] || 0);
+        const color = getPillColor(pillName);
+        return {
+          label: pillName,
+          data: yData,
+          backgroundColor: color,
+          borderColor: color.replace("0.6", "1"),
+          borderWidth: 1,
+        };
+      })
+    : [];
+
   return (
     <VStack spacing={6} align="stretch">
-      {/* 全件 / 今月切替 */}
+      {/* 全件 / 今月 / 指定月 */}
       <Box textAlign="center">
         <ButtonGroup isAttached variant="outline" colorScheme="blue" mb={3}>
           <Button
             onClick={() => setMonthFilter(null)}
             isActive={monthFilter === null}
           >
-            全部の記録
+            全件
           </Button>
           <Button
-            onClick={() => setMonthFilter(new Date().toISOString().slice(0, 7))}
-            isActive={monthFilter !== null}
+            onClick={() => setMonthFilter("current")}
+            isActive={monthFilter === "current"}
           >
-            今月の記録
+            今月
           </Button>
         </ButtonGroup>
+
+        <Input
+          type="month"
+          w="150px"
+          display="inline-block"
+          ml={3}
+          onChange={(e) => setMonthFilter(e.target.value)}
+          value={
+            typeof monthFilter === "string" && monthFilter !== "current"
+              ? monthFilter
+              : ""
+          }
+        />
       </Box>
+
       {/* 日/週/月切替 */}
       <Box textAlign="center">
         <ButtonGroup isAttached variant="outline" colorScheme="blue" mb={3}>
@@ -224,40 +234,44 @@ const UsageSummaryChart: React.FC = () => {
           </Button>
         </ButtonGroup>
       </Box>
-      return (
+
+      {/* チャート */}
       <Box p={5} borderWidth="1px" borderRadius="md" bg="white" shadow="md">
         <Heading size="md" mb={3}>
           使用量グラフ
         </Heading>
-        <Bar
-          data={chartData}
-          options={{
-            responsive: true,
-            plugins: {
-              legend: { position: "bottom" },
-              tooltip: { mode: "index", intersect: false },
-            },
-            scales: {
-              y: {
-                beginAtZero: true,
-                title: { display: true, text: "合計使用量" },
+        {groupedData ? (
+          <Bar
+            data={{ labels, datasets }}
+            options={{
+              responsive: true,
+              plugins: {
+                legend: { position: "bottom" },
+                tooltip: { mode: "index", intersect: false },
               },
-              x: {
-                title: {
-                  display: true,
-                  text:
-                    viewMode === "day"
-                      ? "日付"
-                      : viewMode === "week"
-                      ? "週の開始日（月曜）"
-                      : "年月",
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: { display: true, text: "合計使用量" },
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text:
+                      viewMode === "day"
+                        ? "日付"
+                        : viewMode === "week"
+                        ? "週の開始日（月曜）"
+                        : "年月",
+                  },
                 },
               },
-            },
-          }}
-        />
+            }}
+          />
+        ) : (
+          <Spinner />
+        )}
       </Box>
-      );
     </VStack>
   );
 };

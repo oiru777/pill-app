@@ -222,7 +222,7 @@ export default function UsageDetailPage() {
               <Text fontSize="sm">{c.content}</Text>
               <Text fontSize="xs" color="gray.500">
                 {c.user?.name ?? "不明"} ・{" "}
-                {new Date(c.timestamp).toLocaleString("ja-JP")}
+                {new Date(c.created_at).toLocaleString("ja-JP")}
               </Text>
             </Box>
           ))
