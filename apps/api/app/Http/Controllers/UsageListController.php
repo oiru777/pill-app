@@ -6,6 +6,7 @@ use App\Models\UsageList;
 use App\Models\UsageItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class UsageListController extends Controller
 {
@@ -36,29 +37,46 @@ class UsageListController extends Controller
 
         return response()->json($usages);
     }
-    // 折れ線グラフ用
-    public function graphData()
-    {
+    public function graphData(Request $request)
+{
+    $user = $request->user();
+
+    // クエリから "month" を取得（例: ?month=2025-10）、未指定なら null
+    $month = $request->query('month');
+
+    // クエリがある場合は月初〜月末で絞り込み、なければ全件取得
+    if ($month) {
+        $startOfMonth = Carbon::parse($month)->startOfMonth();
+        $endOfMonth = Carbon::parse($month)->endOfMonth();
+
         $lists = UsageList::with(['items.pill', 'user'])
-            ->where('user_id', 3)
-            ->orderBy('timestamp', 'desc')
+            ->where('user_id', $user->id) 
+            ->whereBetween('timestamp', [$startOfMonth, $endOfMonth])
+            ->orderBy('timestamp', 'asc')
             ->get();
-
-        $result = [];
-
-        foreach ($lists as $list) {
-            foreach ($list->items as $item) {
-                $result[] = [
-                    'timestamp' => $list->timestamp,
-                    'pill_name' => $item->pill->name,
-                    'quantity' => $item->quantity,
-                ];
-            }
-        }
-
-        return response()->json($result);
+    } else {
+        // month 指定なし → 全件取得
+        $lists = UsageList::with(['items.pill', 'user'])
+            ->where('user_id', 3) // 実際は $user->id
+            ->orderBy('timestamp', 'asc')
+            ->get();
     }
-    /**
+
+    $result = [];
+
+    foreach ($lists as $list) {
+        foreach ($list->items as $item) {
+            $result[] = [
+                'timestamp' => $list->timestamp,
+                'pill_name' => $item->pill->name,
+                'quantity' => $item->quantity,
+            ];
+        }
+    }
+
+    return response()->json($result);
+}
+/**
      * 新規登録
      */
     public function store(Request $request)
@@ -97,7 +115,6 @@ class UsageListController extends Controller
             201
         );
     }
-
     /**
      * 詳細取得
      */

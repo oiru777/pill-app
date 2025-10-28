@@ -56,7 +56,6 @@ function generateAllDays(startDate: Date, endDate: Date): string[] {
   }
   return days;
 }
-
 // ✅ 週範囲の全ラベル生成（月曜始まり）
 function generateAllWeeks(startDate: Date, endDate: Date): string[] {
   const weeks: string[] = [];
@@ -86,25 +85,21 @@ const UsageSummaryChart: React.FC = () => {
   > | null>(null);
   const [labels, setLabels] = useState<string[]>([]);
   const [viewMode, setViewMode] = useState<"day" | "week" | "month">("day");
-  const [monthFilter, setMonthFilter] = useState<string | null>(null); // null=全件, 'YYYY-MM'=月指定
 
   useEffect(() => {
     const fetchUsageGraph = async () => {
       try {
-        const url = monthFilter
-          ? `http://localhost:8000/api/v1.0/usage-graph?month=${monthFilter}`
-          : "http://localhost:8000/api/v1.0/usage-graph";
-
-        const res = await fetch(url, {
-          credentials: "include",
+        const res = await fetch("http://localhost:8000/api/v1.0/usage-graph", {
+          credentials: "include", // Cookieを送信
         });
-
+        // サーバーエラーを検出
         if (!res.ok) {
-          const text = await res.text();
+          const text = await res.text(); // HTMLエラーメッセージを見る
           console.error("サーバーエラー:", res.status, text);
           throw new Error(`サーバーエラー: ${res.status}`);
         }
 
+        // JSONパース
         const data: UsageData[] = await res.json();
         setGroupedData(processData(data, viewMode));
       } catch (err) {
@@ -113,7 +108,7 @@ const UsageSummaryChart: React.FC = () => {
     };
 
     fetchUsageGraph();
-  }, [viewMode, monthFilter]);
+  }, [viewMode]);
 
   // ✅ データ整形（日/週/月）
   const processData = (data: UsageData[], mode: "day" | "week" | "month") => {
@@ -121,16 +116,22 @@ const UsageSummaryChart: React.FC = () => {
 
     const grouped: Record<string, Record<string, number>> = {};
 
+    // 日付範囲の最小・最大を取得
     const timestamps = data.map((d) => new Date(d.timestamp));
     const minDate = new Date(Math.min(...timestamps.map((d) => d.getTime())));
     const maxDate = new Date(Math.max(...timestamps.map((d) => d.getTime())));
 
     let allLabels: string[];
 
-    if (mode === "day") allLabels = generateAllDays(minDate, maxDate);
-    else if (mode === "week") allLabels = generateAllWeeks(minDate, maxDate);
-    else allLabels = generateAllMonths(minDate, maxDate);
+    if (mode === "day") {
+      allLabels = generateAllDays(minDate, maxDate);
+    } else if (mode === "week") {
+      allLabels = generateAllWeeks(minDate, maxDate);
+    } else {
+      allLabels = generateAllMonths(minDate, maxDate);
+    }
 
+    // 各薬ごとに集計
     data.forEach((d) => {
       const date = new Date(d.timestamp);
       const key =
@@ -152,27 +153,8 @@ const UsageSummaryChart: React.FC = () => {
 
   return (
     <VStack spacing={6} align="stretch">
-      {/* 全件 / 今月切替 */}
       <Box textAlign="center">
-        <ButtonGroup isAttached variant="outline" colorScheme="blue" mb={3}>
-          <Button
-            onClick={() => setMonthFilter(null)}
-            isActive={monthFilter === null}
-          >
-            全部の記録
-          </Button>
-          <Button
-            onClick={() => setMonthFilter(new Date().toISOString().slice(0, 7))}
-            isActive={monthFilter !== null}
-          >
-            今月の記録
-          </Button>
-        </ButtonGroup>
-      </Box>
-
-      {/* 日/週/月切替 */}
-      <Box textAlign="center">
-        <ButtonGroup isAttached variant="outline" colorScheme="blue" mb={3}>
+        <ButtonGroup isAttached variant="outline" colorScheme="blue">
           <Button
             onClick={() => setViewMode("day")}
             isActive={viewMode === "day"}

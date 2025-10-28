@@ -28,7 +28,6 @@ type UsageItem = {
 
 export default function AddUsagePage() {
   const toast = useToast();
-  // 🔹 state から初期値を設定
   const location = useLocation();
   const state = location.state as
     | { content?: string; timestamp?: string; items?: any[] }
@@ -41,22 +40,19 @@ export default function AddUsagePage() {
   );
   const [pills, setPills] = useState<Pill[]>([]);
   const [user, setUser] = useState<any>(null);
-  // 現在日時をdatetime-local用の形式で取得する関数
+
   const getCurrentDateTimeLocal = () => {
     const now = new Date();
-    // UTC → JST に9時間（= 9 * 60 * 60 * 1000 ミリ秒）足す
     const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
     return jst.toISOString().slice(0, 16);
   };
 
-  // 初期値セット（state?.timestampがない場合のみ現在日時セット）
   useEffect(() => {
     if (!state?.timestamp) {
       setTimestamp(getCurrentDateTimeLocal());
     }
   }, [state]);
 
-  // pillsデータをAPIから取得（例）
   useEffect(() => {
     async function fetchData() {
       try {
@@ -84,19 +80,46 @@ export default function AddUsagePage() {
 
     fetchData();
   }, [toast]);
-  // 薬を追加
+
   function addItem() {
     setItems([...items, { pill_id: 0, quantity: 0 }]);
   }
 
-  // 薬の選択や数量変更
   function updateItem(index: number, key: keyof UsageItem, value: any) {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [key]: value };
     setItems(newItems);
+
+    // ⚠️ 薬固有の警告
+    if (key === "pill_id") {
+      const medicon = pills.find((p) => p.name === "メジコン");
+      if (medicon && value === medicon.id) {
+        toast({
+          title: "⚠️ メジコン注意",
+          description:
+            "SSRIとの飲み合わせに注意してください！\n服用しないでください:\n- ジェイゾロフト\n- デプロメール\n- ルボックス\n- パキシル\n- レクサプロ",
+          status: "warning",
+          duration: 10000,
+          isClosable: true,
+        });
+      }
+    }
+
+    if (key === "quantity") {
+      const pb = pills.find((p) => p.name === "パブロンゴールド");
+      if (pb && newItems[index].pill_id === pb.id && value >= 100) {
+        toast({
+          title: "⚠️ 注意",
+          description:
+            "100錠以上の服用は死亡する可能性があります。服用しないでください。",
+          status: "warning",
+          duration: 10000,
+          isClosable: true,
+        });
+      }
+    }
   }
 
-  // フォーム送信
   async function handleSubmit() {
     if (!content || !timestamp) {
       toast({
@@ -108,7 +131,7 @@ export default function AddUsagePage() {
       return;
     }
 
-    // pill_idが0（未選択）の薬があれば警告
+    // 未選択薬や数量0のチェック
     if (items.some((item) => item.pill_id === 0 || item.quantity <= 0)) {
       toast({
         title: "すべての薬を選択し、数量は1以上にしてください。",
@@ -120,10 +143,8 @@ export default function AddUsagePage() {
     }
 
     try {
-      // LaravelサーバーのURL
-      const API_BASE = "http://localhost:8000"; // ← 8000 忘れずに！
+      const API_BASE = "http://localhost:8000";
 
-      // ✅ CSRF Cookieを取得（これで XSRF-TOKEN がセットされる）
       await axios.get(`${API_BASE}/sanctum/csrf-cookie`, {
         withCredentials: true,
         withXSRFToken: true,
@@ -152,7 +173,6 @@ export default function AddUsagePage() {
         isClosable: true,
       });
 
-      // フォームリセット
       setContent("");
       setTimestamp("");
       setItems([{ pill_id: 0, quantity: 0 }]);
