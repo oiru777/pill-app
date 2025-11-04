@@ -116,6 +116,9 @@ export const HomePage: FC = () => {
     if (days >= 180) return "🌟 半年達成";
     if (days >= 90) return "✨ 3ヶ月達成";
     if (days >= 30) return "💪 1ヶ月達成";
+    if (days >= 28) return "🎯 4週間達成";
+    if (days >= 21) return "🎯 3週間達成";
+    if (days >= 14) return "🎯 2週間達成";
     if (days >= 7) return "🎯 1週間達成";
     return "継続中";
   };
@@ -355,7 +358,7 @@ export const HomePage: FC = () => {
             colorScheme="teal"
             onClick={() => navigate("/chart")}
           >
-            グラフ
+            集計
           </Button>
         </SimpleGrid>
 

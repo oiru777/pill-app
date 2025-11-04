@@ -42,6 +42,7 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     Route::get('/usage-lists/{usageList}/comments', [CommentController::class, 'index']);
 
     Route::get('/my-stop-pill-day', [UsageListController::class, 'myStopPillDay']); // 詳細
+    Route::get('/stop-pill-day/user/{userId}', [UsageListController::class, 'UserStopPillDay']); // 詳細
 
     Route::get('/usage-graph', [UsageListController::class, 'graphData']);
 

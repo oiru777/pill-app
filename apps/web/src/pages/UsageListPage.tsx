@@ -45,7 +45,7 @@ function getBadgeColor(pillName: string) {
 export default function UsageListPage() {
   const [usageLists, setUsageLists] = useState<UsageList[]>([]);
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"all" | "my">("all");
+  const [mode, setMode] = useState<"all" | "my">("my");
   const toast = useToast();
   const navigate = useNavigate();
 
