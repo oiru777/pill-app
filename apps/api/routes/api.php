@@ -33,6 +33,7 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     Route::get('/usage-lists', [UsageListController::class, 'index']); // 全部
     Route::get('/usage-lists/my', [UsageListController::class, 'myLists']); // 自分の分
     Route::get('/usage-lists/{id}', [UsageListController::class, 'show']); // 詳細
+    Route::get('/usage-lists/user/{userId}', [UsageListController::class, 'userLists']);
     Route::delete('/usage-lists/{id}', [UsageListController::class, 'destroy']);
     Route::put('/usage-lists/{id}', [UsageListController::class, 'update']);
 

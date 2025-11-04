@@ -11,9 +11,9 @@ import {
   Badge,
   useToast,
   Button,
-  ButtonGroup,
 } from "@chakra-ui/react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 type Pill = { id: number; name: string };
 type UsageItem = { pill_id: number; quantity: number; pill: Pill };
@@ -42,67 +42,63 @@ function getBadgeColor(pillName: string) {
   }
 }
 
-export default function UsageListPage() {
+export default function UserProfilePage() {
+  const { userId } = useParams<{ userId: string }>();
   const [usageLists, setUsageLists] = useState<UsageList[]>([]);
+  const [userName, setUserName] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [mode, setMode] = useState<"all" | "my">("all");
   const toast = useToast();
   const navigate = useNavigate();
 
   const API_BASE = "http://localhost:8000";
 
-  const fetchUsageLists = async () => {
-    setLoading(true);
-    try {
-      const endpoint =
-        mode === "all"
-          ? `${API_BASE}/api/v1.0/usage-lists`
-          : `${API_BASE}/api/v1.0/usage-lists/my`;
-
-      const res = await axios.get(endpoint, { withCredentials: true });
-      setUsageLists(res.data);
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "記録の取得に失敗しました",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchUsageLists();
-  }, [mode]);
+    const fetchUserUsageLists = async () => {
+      if (!userId) return;
 
-  const handleUserClick = (userId: number, e: React.MouseEvent) => {
-    e.stopPropagation(); // 親要素のonClickを防ぐ
-    navigate(`/user/${userId}`);
-  };
+      setLoading(true);
+      try {
+        const res = await axios.get(
+          `${API_BASE}/api/v1.0/usage-lists/user/${userId}`,
+          { withCredentials: true }
+        );
+        setUsageLists(res.data);
+
+        // ユーザー名を取得（最初の記録から）
+        if (res.data.length > 0) {
+          setUserName(res.data[0].user.name);
+        }
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "記録の取得に失敗しました",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserUsageLists();
+  }, [userId]);
 
   return (
     <Box maxW="800px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
-      <Heading mb={4} textAlign="center">
-        使用履歴一覧
-      </Heading>
+      <HStack mb={4}>
+        <Button
+          leftIcon={<ArrowLeft size={20} />}
+          variant="ghost"
+          onClick={() => navigate(-1)}
+        >
+          戻る
+        </Button>
+      </HStack>
 
-      <ButtonGroup mb={6} justifyContent="center" width="100%">
-        <Button
-          colorScheme={mode === "my" ? "teal" : "gray"}
-          onClick={() => setMode("my")}
-        >
-          自分の記録
-        </Button>
-        <Button
-          colorScheme={mode === "all" ? "teal" : "gray"}
-          onClick={() => setMode("all")}
-        >
-          みんなの記録
-        </Button>
-      </ButtonGroup>
+      <Heading mb={6} textAlign="center">
+        {userName ? `${userName} の記録` : "ユーザーの記録"}
+      </Heading>
 
       {loading && (
         <Box textAlign="center" my={4}>
@@ -134,22 +130,6 @@ export default function UsageListPage() {
               </Text>
               <Text fontSize="sm" color="gray.500">
                 {new Date(usage.timestamp).toLocaleString("ja-JP")}
-              </Text>
-            </HStack>
-
-            <HStack mb={2}>
-              <Text fontSize="sm" color="gray.600">
-                記録者:
-              </Text>
-              <Text
-                fontSize="sm"
-                fontWeight="bold"
-                color="teal.600"
-                cursor="pointer"
-                _hover={{ textDecoration: "underline" }}
-                onClick={(e) => handleUserClick(usage.user.id, e)}
-              >
-                {usage.user?.name ?? "不明"}
               </Text>
             </HStack>
 

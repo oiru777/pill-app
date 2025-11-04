@@ -8,6 +8,7 @@ import AddUsagePage from "./pages/AddUsagePage";
 import UsageListPage from "./pages/UsageListPage";
 import UsageDetailPage from "./pages/UsageDetailPage";
 import UsageLineChart from "./pages/UsageLineChart";
+import UserProfilePage from "./pages/UserProfilePage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { ForgotPassword } from "./pages/ForgotPassword";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage";
@@ -33,6 +34,7 @@ const App: React.FC = () => {
           <Route path="/chart" element={<UsageLineChart />} />
           <Route path="/usage-list" element={<UsageListPage />} />
           <Route path="/usage/:id" element={<UsageDetailPage />} />
+          <Route path="/user/:userId" element={<UserProfilePage />} />
           <Route
             path="/register"
             element={<RegisterPage onLogin={handleLogin} />}
