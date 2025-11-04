@@ -153,7 +153,7 @@ class UsageListController extends Controller
         return response()->json(['message' => 'Deleted successfully']);
     }
 
-// 連続服用日数を計算
+// 連続服用日数と最高記録を計算
 public function myStopPillDay(Request $request)
 {
     $user = $request->user();
@@ -168,6 +168,8 @@ public function myStopPillDay(Request $request)
         return response()->json([
             'stop_days' => 0,
             'consecutive_usage_days' => 0,
+            'max_stop_days' => 0,
+            'max_consecutive_usage_days' => 0,
             'last_usage_date' => null,
             'message' => '服薬記録がありません'
         ]);
@@ -177,45 +179,88 @@ public function myStopPillDay(Request $request)
     $now = Carbon::now();
     $stopDays = $lastUsageDate->diffInDays($now);
 
-    // 断薬中（最終服薬日が今日でない）の場合、連続服用日数は0
-    if ($stopDays > 0) {
-        return response()->json([
-            'stop_days' => $stopDays,
-            'consecutive_usage_days' => 0,
-            'last_usage_date' => $lastUsageDate->format('Y-m-d H:i:s'),
-            'message' => "{$stopDays}日間断薬中です"
-        ]);
-    }
+    // 最高記録を計算
+    $maxStopDays = 0;
+    $maxConsecutiveUsageDays = 0;
+    $currentStopDays = 0;
+    $currentConsecutiveDays = 0;
+    $previousDate = null;
 
-    // 連続服用日数を計算（今日も服用している場合のみ）
-    $consecutiveUsageDays = 1; // 今日の記録は1日目
-    $previousDate = $lastUsageDate->copy()->startOfDay();
+    foreach ($usages as $usage) {
+        $currentDate = Carbon::parse($usage->timestamp)->startOfDay();
 
-    for ($i = 1; $i < $usages->count(); $i++) {
-        $currentDate = Carbon::parse($usages[$i]->timestamp)->startOfDay();
-        $daysDiff = $previousDate->diffInDays($currentDate);
-
-        // 1日違い（連続）なら加算
-        if ($daysDiff === 1) {
-            $consecutiveUsageDays++;
-            $previousDate = $currentDate;
-        } 
-        // 同じ日（複数回服用）ならカウントしない
-        elseif ($daysDiff === 0) {
+        if ($previousDate === null) {
+            // 最初の記録
+            $currentConsecutiveDays = 1;
             $previousDate = $currentDate;
             continue;
         }
-        // 2日以上空いたら連続終了
-        else {
-            break;
+
+        $daysDiff = $previousDate->diffInDays($currentDate);
+
+        if ($daysDiff === 0) {
+            // 同じ日の複数回服用
+            continue;
+        } elseif ($daysDiff === 1) {
+            // 連続服用
+            $currentConsecutiveDays++;
+            
+            // 断薬期間があればリセット
+            if ($currentStopDays > 0) {
+                $maxStopDays = max($maxStopDays, $currentStopDays);
+                $currentStopDays = 0;
+            }
+        } else {
+            // 空白期間（断薬）
+            $maxConsecutiveUsageDays = max($maxConsecutiveUsageDays, $currentConsecutiveDays);
+            $currentConsecutiveDays = 1;
+            $currentStopDays = $daysDiff - 1;
         }
+
+        $previousDate = $currentDate;
+    }
+
+    // 最後の記録を反映
+    $maxConsecutiveUsageDays = max($maxConsecutiveUsageDays, $currentConsecutiveDays);
+    $maxStopDays = max($maxStopDays, $currentStopDays);
+    
+    // 現在の断薬日数も最高記録に含める
+    $maxStopDays = max($maxStopDays, $stopDays);
+
+    // 現在の連続服用日数を計算
+    $consecutiveUsageDays = 0;
+    if ($stopDays === 0) {
+        // 今日も服用している場合のみ
+        $consecutiveUsageDays = 1;
+        $previousDate = $lastUsageDate->copy()->startOfDay();
+
+        for ($i = 1; $i < $usages->count(); $i++) {
+            $currentDate = Carbon::parse($usages[$i]->timestamp)->startOfDay();
+            $daysDiff = $previousDate->diffInDays($currentDate);
+
+            if ($daysDiff === 1) {
+                $consecutiveUsageDays++;
+                $previousDate = $currentDate;
+            } elseif ($daysDiff === 0) {
+                continue;
+            } else {
+                break;
+            }
+        }
+        
+        // 現在の連続服用日数も最高記録に含める
+        $maxConsecutiveUsageDays = max($maxConsecutiveUsageDays, $consecutiveUsageDays);
     }
 
     return response()->json([
-        'stop_days' => 0,
+        'stop_days' => $stopDays,
         'consecutive_usage_days' => $consecutiveUsageDays,
+        'max_stop_days' => $maxStopDays,
+        'max_consecutive_usage_days' => $maxConsecutiveUsageDays,
         'last_usage_date' => $lastUsageDate->format('Y-m-d H:i:s'),
-        'message' => "{$consecutiveUsageDays}日間連続服用中です"
+        'message' => $stopDays > 0 
+            ? "{$stopDays}日間断薬中です（最高記録: {$maxStopDays}日）" 
+            : "{$consecutiveUsageDays}日間連続服用中です（最高記録: {$maxConsecutiveUsageDays}日）"
     ]);
 }
 }

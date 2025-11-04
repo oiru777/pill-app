@@ -19,6 +19,11 @@ import {
   HStack,
   useToast,
   Spinner,
+  Container,
+  Divider,
+  Card,
+  CardBody,
+  Heading,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 
@@ -94,6 +99,7 @@ export const CountPage: React.FC = () => {
     detectView(canvasRef.current!, imageRef.current!, restoreScale, bboxes);
     setState([false, "検出完了"]);
   }
+
   // 🔹 AddUsagePage へ遷移してデータ渡す
   const handleGoToRegister = () => {
     if (!Object.keys(labelCounts).length) {
@@ -108,13 +114,13 @@ export const CountPage: React.FC = () => {
 
     // 🧩 YOLOラベル → pillsテーブルのID対応マップ
     const pillMap: Record<string, number> = {
-      bron: 1, // Bron → pills.id = 1
-      restamin: 2, // Restamin → pills.id = 2
-      pabrongold: 3, // Pabrongold → pills.id = 3
+      bron: 1,
+      restamin: 2,
+      pabrongold: 3,
     };
 
     const items = Object.entries(labelCounts).map(([label, quantity]) => ({
-      pill_id: pillMap[label.toLowerCase()] ?? 1, // ラベル名小文字化して照合
+      pill_id: pillMap[label.toLowerCase()] ?? 1,
       quantity,
     }));
 
@@ -128,84 +134,131 @@ export const CountPage: React.FC = () => {
   };
 
   return (
-    <Box p={6}>
-      <VStack spacing={6} align="center">
-        <Text fontSize="2xl" fontWeight="bold">
+    <Container maxW="container.xl" py={8}>
+      <VStack spacing={8} align="stretch">
+        <Heading as="h1" size="lg" textAlign="center" color="teal.600">
           錠数カウント
-        </Text>
+        </Heading>
 
-        <Input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          width="auto"
-        />
+        <Card>
+          <CardBody>
+            <VStack spacing={4}>
+              <Input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                size="lg"
+                borderColor="teal.300"
+                _hover={{ borderColor: "teal.400" }}
+              />
 
-        <Button
-          colorScheme="purple"
-          onClick={predict}
-          isDisabled={state[0] || !model}
-        >
-          {state[0] ? <Spinner size="sm" /> : "検出開始"}
-        </Button>
+              <Button
+                colorScheme="teal"
+                size="lg"
+                onClick={predict}
+                isDisabled={state[0] || !model}
+                width="full"
+              >
+                {state[0] ? (
+                  <>
+                    <Spinner size="sm" mr={2} />
+                    {state[1]}
+                  </>
+                ) : (
+                  "検出開始"
+                )}
+              </Button>
 
-        <Text>{state[1]}</Text>
-
-        {/* 結果表示 */}
-        <Box textAlign="center">
-          <Text>検出された物体数: {bboxCount}</Text>
-          {Object.keys(labelCounts).length > 0 && (
-            <Box mt={2}>
-              <Text fontWeight="bold">ラベルごとの内訳:</Text>
-              {Object.entries(labelCounts).map(([label, count]) => (
-                <Text key={label}>
-                  {label}: {count} 個
+              {!state[0] && state[1] && (
+                <Text color="teal.600" fontSize="sm">
+                  {state[1]}
                 </Text>
-              ))}
-            </Box>
-          )}
-        </Box>
+              )}
+            </VStack>
+          </CardBody>
+        </Card>
 
-        <HStack align="start" spacing={6}>
-          <Box>
-            <Text fontWeight="bold" mb={2}>
+        {bboxCount > 0 && (
+          <Card bg="teal.50" borderColor="teal.200" borderWidth={1}>
+            <CardBody>
+              <VStack spacing={3} align="stretch">
+                <Heading as="h3" size="md" color="teal.700">
+                  検出結果
+                </Heading>
+                <Text fontSize="lg" fontWeight="semibold">
+                  検出された物体数:{" "}
+                  <Text as="span" color="teal.600">
+                    {bboxCount}
+                  </Text>
+                </Text>
+
+                {Object.keys(labelCounts).length > 0 && (
+                  <>
+                    <Divider borderColor="teal.300" />
+                    <Box>
+                      <Text fontWeight="bold" mb={2} color="teal.700">
+                        ラベルごとの内訳:
+                      </Text>
+                      {Object.entries(labelCounts).map(([label, count]) => (
+                        <HStack key={label} justify="space-between" py={1}>
+                          <Text>{label}</Text>
+                          <Text fontWeight="bold" color="teal.600">
+                            {count} 錠
+                          </Text>
+                        </HStack>
+                      ))}
+                    </Box>
+
+                    <Button
+                      colorScheme="teal"
+                      size="lg"
+                      onClick={handleGoToRegister}
+                      width="full"
+                      maxW="md"
+                      mx="auto"
+                    >
+                      この検出結果で登録
+                    </Button>
+                  </>
+                )}
+              </VStack>
+            </CardBody>
+          </Card>
+        )}
+
+        <HStack spacing={6} align="start" justify="center" flexWrap="wrap">
+          <VStack>
+            <Text fontWeight="bold" color="teal.700" mb={2}>
               入力画像
             </Text>
-            <Image
-              ref={imageRef}
-              src={imageSrc}
-              alt="input"
-              maxW="400px"
+            <Box
+              borderWidth={2}
+              borderColor="teal.200"
               borderRadius="md"
+              overflow="hidden"
               boxShadow="md"
-            />
-          </Box>
+            >
+              <Image ref={imageRef} src={imageSrc} alt="input" maxW="400px" />
+            </Box>
+          </VStack>
 
-          <Box>
-            <Text fontWeight="bold" mb={2}>
+          <VStack>
+            <Text fontWeight="bold" color="teal.700" mb={2}>
               検出結果
             </Text>
-            <canvas
-              ref={canvasRef}
-              width={400}
-              height={400}
-              style={{
-                borderRadius: "8px",
-                boxShadow: "0 0 6px rgba(0,0,0,0.2)",
-              }}
-            />
-          </Box>
+            <Box
+              borderWidth={2}
+              borderColor="teal.200"
+              borderRadius="md"
+              overflow="hidden"
+              boxShadow="md"
+            >
+              <canvas ref={canvasRef} width={400} height={400} />
+            </Box>
+          </VStack>
         </HStack>
-
-        <Button
-          colorScheme="pink"
-          onClick={handleGoToRegister}
-          isDisabled={!Object.keys(labelCounts).length}
-        >
-          この検出結果で登録
-        </Button>
       </VStack>
-    </Box>
+    </Container>
   );
 };

@@ -20,6 +20,8 @@ import { useNavigate } from "react-router-dom";
 interface StopPillData {
   stop_days: number;
   consecutive_usage_days: number;
+  max_stop_days: number;
+  max_consecutive_usage_days: number;
   last_usage_date: string | null;
   message: string;
 }
@@ -247,6 +249,9 @@ export const HomePage: FC = () => {
                     {getMilestoneMessage(stopDaysData.stop_days)}
                   </Badge>
                 )}
+                <Text fontSize="xs" color="gray.500" mt={2}>
+                  最高記録: {stopDaysData.max_stop_days}日
+                </Text>
               </VStack>
             ) : (
               <Text color="gray.500" fontSize="sm">
@@ -299,6 +304,9 @@ export const HomePage: FC = () => {
                     継続中
                   </Badge>
                 )}
+                <Text fontSize="xs" color="gray.500" mt={2}>
+                  最高記録: {stopDaysData.max_consecutive_usage_days}日
+                </Text>
               </VStack>
             ) : (
               <Text color="gray.500" fontSize="sm">
