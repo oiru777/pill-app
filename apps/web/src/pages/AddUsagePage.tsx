@@ -99,7 +99,7 @@ export default function AddUsagePage() {
         toast({
           title: "メジコンはSSRIとの併用に注意してください！",
           description:
-            "以下の薬(SSRI)を服用している場合、セロトニン症候群を引き起こします。:\n- ジェイゾロフト\n- デプロメール\n- ルボックス\n- パキシル\n- レクサプロ",
+            "以下の薬を服用している場合、セロトニン症候群を引き起こす危険があります。:\n- フルボキサミン（ルボックス、デプロメール）、パロキセチン（パキシル）、セルトラリン（ジェイゾロフト）、エスシタロプラム（レクサプロ)",
           status: "warning",
           duration: 10000,
           isClosable: true,
@@ -112,8 +112,7 @@ export default function AddUsagePage() {
       if (pb && newItems[index].pill_id === pb.id && value >= 100) {
         toast({
           title: "⚠️ 注意",
-          description:
-            "100錠以上の服用は死亡する可能性があります。服用しないでください。",
+          description: "100錠以上の服用は危険です。服用しないでください。",
           status: "warning",
           duration: 10000,
           isClosable: true,

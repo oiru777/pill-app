@@ -40,11 +40,14 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     Route::post('/usage-lists/{usageList}/comments', [CommentController::class, 'store']);
     Route::get('/usage-lists/{usageList}/comments', [CommentController::class, 'index']);
 
+    Route::get('/my-stop-pill-day', [UsageListController::class, 'myStopPillDay']); // 詳細
+
     Route::get('/usage-graph', [UsageListController::class, 'graphData']);
 
     // 🔹 使用アイテム（UsageItem）
     Route::get('/usage-items', [UsageItemController::class, 'index']); // 一覧（usage_idで絞り込み可）
     Route::get('/usage-items/{id}', [UsageItemController::class, 'show']); // 詳細
+
 
 
     // パスワードリセットリンク送信

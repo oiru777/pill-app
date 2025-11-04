@@ -37,6 +37,7 @@ class UsageListController extends Controller
 
         return response()->json($usages);
     }
+
     public function graphData(Request $request)
 {
     $user = $request->user();
@@ -151,4 +152,71 @@ class UsageListController extends Controller
 
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+// 連続服用日数を計算
+public function myStopPillDay(Request $request)
+{
+    $user = $request->user();
+
+    // 全ての服薬記録を取得（日付順）
+    $usages = UsageList::where('user_id', $user->id)
+        ->orderBy('timestamp', 'desc')
+        ->get();
+
+    // 服薬記録がない場合
+    if ($usages->isEmpty()) {
+        return response()->json([
+            'stop_days' => 0,
+            'consecutive_usage_days' => 0,
+            'last_usage_date' => null,
+            'message' => '服薬記録がありません'
+        ]);
+    }
+
+    $lastUsageDate = Carbon::parse($usages->first()->timestamp);
+    $now = Carbon::now();
+    $stopDays = $lastUsageDate->diffInDays($now);
+
+    // 断薬中（最終服薬日が今日でない）の場合、連続服用日数は0
+    if ($stopDays > 0) {
+        return response()->json([
+            'stop_days' => $stopDays,
+            'consecutive_usage_days' => 0,
+            'last_usage_date' => $lastUsageDate->format('Y-m-d H:i:s'),
+            'message' => "{$stopDays}日間断薬中です"
+        ]);
+    }
+
+    // 連続服用日数を計算（今日も服用している場合のみ）
+    $consecutiveUsageDays = 1; // 今日の記録は1日目
+    $previousDate = $lastUsageDate->copy()->startOfDay();
+
+    for ($i = 1; $i < $usages->count(); $i++) {
+        $currentDate = Carbon::parse($usages[$i]->timestamp)->startOfDay();
+        $daysDiff = $previousDate->diffInDays($currentDate);
+
+        // 1日違い（連続）なら加算
+        if ($daysDiff === 1) {
+            $consecutiveUsageDays++;
+            $previousDate = $currentDate;
+        } 
+        // 同じ日（複数回服用）ならカウントしない
+        elseif ($daysDiff === 0) {
+            $previousDate = $currentDate;
+            continue;
+        }
+        // 2日以上空いたら連続終了
+        else {
+            break;
+        }
+    }
+
+    return response()->json([
+        'stop_days' => 0,
+        'consecutive_usage_days' => $consecutiveUsageDays,
+        'last_usage_date' => $lastUsageDate->format('Y-m-d H:i:s'),
+        'message' => "{$consecutiveUsageDays}日間連続服用中です"
+    ]);
 }
+}
+
