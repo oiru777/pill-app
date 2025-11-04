@@ -3,6 +3,7 @@ import { DetectBbox } from "../types";
 // 薬ごとの色マップ
 const labelColorMap: Record<string, string> = {
   bron: "#4ECDC4", // ターコイズ
+  medicon: "#A260BF", // 紫
   restamin: "#FF6B6B", // 赤系
   pabrongold: "#FFD93D", // 黄色系
 };
