@@ -96,7 +96,13 @@ export const CountPage: React.FC = () => {
     }
     setLabelCounts(counts);
 
-    detectView(canvasRef.current!, imageRef.current!, restoreScale, bboxes);
+    detectView(
+      canvasRef.current!,
+      imageRef.current!,
+      restoreScale,
+      bboxes,
+      metadata
+    );
     setState([false, "検出完了"]);
   }
 
