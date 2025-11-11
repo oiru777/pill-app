@@ -18,9 +18,9 @@ import {
 } from "@chakra-ui/react";
 
 export const ResetPasswordPage: React.FC = () => {
-  const { token } = useParams();
   const [searchParams] = useSearchParams();
   const email = searchParams.get("email") || "";
+  const token = searchParams.get("token") || "";
 
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -35,7 +35,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     try {
       // CSRF Cookie 取得
-      await axios.get("http://localhost/sanctum/csrf-cookie", {
+      await axios.get("http://localhost:8000/sanctum/csrf-cookie", {
         withCredentials: true,
         withXSRFToken: true,
       });
@@ -48,7 +48,7 @@ export const ResetPasswordPage: React.FC = () => {
 
       // パスワードリセット API 呼び出し
       await axios.post(
-        "http://localhost/api/v1.0/reset-password",
+        "http://localhost:8000/api/v1.0/reset-password",
         {
           token,
           email,

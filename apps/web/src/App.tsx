@@ -40,10 +40,8 @@ const App: React.FC = () => {
             element={<RegisterPage onLogin={handleLogin} />}
           />
           <Route path="/forgotpassword" element={<ForgotPassword />} />
-          <Route
-            path="/reset-password/:token"
-            element={<ResetPasswordPage />}
-          />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+
           <Route path="/Verified" element={<Verified />} />
         </Routes>
       </div>

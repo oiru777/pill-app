@@ -45,7 +45,7 @@ export const ResetPasswordPage: React.FC = () => {
           password,
           password_confirmation: passwordConfirmation,
         },
-        { withCredentials: true }
+        { withCredentials: true, withXSRFToken: true }
       );
 
       setMessage("パスワードをリセットしました。ログインしてください。");
