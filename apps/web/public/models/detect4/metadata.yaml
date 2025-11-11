@@ -1,6 +1,6 @@
 description: Ultralytics YOLO11n model trained on /content/drive/MyDrive/yolo/med/med.yaml
 author: Ultralytics
-date: '2025-11-11T06:44:31.415882'
+date: "2025-11-11T05:59:50.437449"
 version: 8.3.227
 license: AGPL-3.0 License (https://ultralytics.com/license)
 docs: https://docs.ultralytics.com
@@ -8,8 +8,8 @@ stride: 32
 task: detect
 batch: 1
 imgsz:
-- 640
-- 640
+  - 640
+  - 640
 names:
   0: bron
   1: restamin

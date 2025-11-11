@@ -13,9 +13,11 @@ import {
   HStack,
   NumberInput,
   NumberInputField,
+  IconButton,
 } from "@chakra-ui/react";
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 type Pill = {
   id: number;
@@ -85,6 +87,20 @@ export default function AddUsagePage() {
 
   function addItem() {
     setItems([...items, { pill_id: 0, quantity: 0 }]);
+  }
+
+  function removeItem(index: number) {
+    if (items.length === 1) {
+      toast({
+        title: "最低1つは薬を残してください。",
+        status: "warning",
+        duration: 2000,
+        isClosable: true,
+      });
+      return;
+    }
+    const newItems = items.filter((_, i) => i !== index);
+    setItems(newItems);
   }
 
   function updateItem(index: number, key: keyof UsageItem, value: any) {
@@ -243,6 +259,14 @@ export default function AddUsagePage() {
               >
                 <NumberInputField />
               </NumberInput>
+
+              <IconButton
+                aria-label="削除"
+                icon={<DeleteIcon />}
+                colorScheme="red"
+                size="sm"
+                onClick={() => removeItem(index)}
+              />
             </HStack>
           ))}
           <Button size="sm" onClick={addItem}>
