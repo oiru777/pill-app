@@ -49,6 +49,7 @@ Route::middleware(['web'])->prefix('/v1.0')->group(function () {
     // 🔹 使用アイテム（UsageItem）
     Route::get('/usage-items', [UsageItemController::class, 'index']); // 一覧（usage_idで絞り込み可）
     Route::get('/usage-items/{id}', [UsageItemController::class, 'show']); // 詳細
+    Route::put('/usage-items/{id}', [UsageItemController::class, 'update']);
 
 
 

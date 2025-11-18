@@ -17,7 +17,7 @@ import axios from "axios";
 import BackButton from "../components/BackButton";
 
 type Pill = { id: number; name: string };
-type UsageItem = { pill_id: number; quantity: number; pill: Pill };
+type UsageItem = { id: number; pill_id: number; quantity: number; pill: Pill };
 type User = { id: number; name: string };
 type Comment = { id: number; user: User; content: string; timestamp: string };
 type UsageDetail = {
@@ -115,6 +115,36 @@ export default function UsageDetailPage() {
     }
   };
 
+  // 🔹 アイテムの数量編集
+  const handleEditQuantity = async (
+    usageItemId: number,
+    currentQuantity: number
+  ) => {
+    const newQuantity = prompt(
+      "新しい数量を入力してください",
+      currentQuantity.toString()
+    );
+    if (!newQuantity || isNaN(Number(newQuantity)) || Number(newQuantity) <= 0)
+      return;
+
+    try {
+      await axios.put(
+        `${API_BASE}/api/v1.0/usage-items/${usageItemId}`,
+        { quantity: Number(newQuantity) },
+        { withCredentials: true, withXSRFToken: true }
+      );
+      toast({ title: "数量を更新しました", status: "success", duration: 2000 });
+      fetchUsage();
+    } catch (err) {
+      console.error("数量編集エラー:", err);
+      toast({
+        title: "数量の更新に失敗しました",
+        status: "error",
+        duration: 3000,
+      });
+    }
+  };
+
   // 🔹 コメント投稿
   const handleComment = async () => {
     if (!comment.trim()) return;
@@ -190,11 +220,21 @@ export default function UsageDetailPage() {
       <VStack align="start" spacing={1} mb={3}>
         {usage.items?.length ? (
           usage.items.map((item) => (
-            <HStack key={item.pill_id} spacing={4}>
+            <HStack key={item.id} spacing={4}>
               <Badge colorScheme={getBadgeColor(item.pill.name)}>
                 {item.pill.name}
               </Badge>
               <Text>数量: {item.quantity}</Text>
+              {usage.user_id === currentUserId && (
+                <Button
+                  size="xs"
+                  colorScheme="blue"
+                  variant="outline"
+                  onClick={() => handleEditQuantity(item.id, item.quantity)}
+                >
+                  編集
+                </Button>
+              )}
             </HStack>
           ))
         ) : (
