@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { UsageListItem, UsageList } from "../components/UsageListItem";
+import BackButton from "../components/BackButton";
 
 export default function UsageListPage() {
   const [usageLists, setUsageLists] = useState<UsageList[]>([]);
@@ -60,6 +61,7 @@ export default function UsageListPage() {
 
   return (
     <Box maxW="800px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
+      <BackButton />
       <Heading mb={4} textAlign="center">
         使用履歴一覧
       </Heading>

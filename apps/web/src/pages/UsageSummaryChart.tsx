@@ -16,6 +16,7 @@ import { CostBreakdownTable } from "../components/CostBreakdownTable";
 import { usePills } from "../hooks/usePills";
 import { useUsageData } from "../hooks/useUsageData";
 import type { ViewMode } from "../types";
+import BackButton from "../components/BackButton";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
@@ -34,6 +35,7 @@ const UsageSummaryChart: React.FC = () => {
 
   return (
     <VStack spacing={6} align="stretch">
+      <BackButton />
       <FilterPanel
         monthFilter={monthFilter}
         onMonthFilterChange={setMonthFilter}

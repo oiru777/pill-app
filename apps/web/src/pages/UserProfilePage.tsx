@@ -12,7 +12,7 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "../components/BackButton";
 import { StopDaysCard } from "../components/cards/StopDaysCard.tsx";
 import { UsageDaysCard } from "../components/cards/UsageDaysCard.tsx";
 import { UsageListItem, UsageList } from "../components/UsageListItem";
@@ -125,15 +125,7 @@ export default function UserProfilePage() {
 
   return (
     <Box maxW="800px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
-      <HStack mb={4}>
-        <Button
-          leftIcon={<ArrowLeft size={20} />}
-          variant="ghost"
-          onClick={() => navigate(-1)}
-        >
-          戻る
-        </Button>
-      </HStack>
+      <BackButton />
 
       <Heading mb={6} textAlign="center">
         {userName ? `${userName} の記録` : "ユーザーの記録"}

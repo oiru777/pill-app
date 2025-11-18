@@ -18,6 +18,7 @@ import {
 import { useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { DeleteIcon } from "@chakra-ui/icons";
+import BackButton from "../components/BackButton";
 
 type Pill = {
   id: number;
@@ -207,11 +208,7 @@ export default function AddUsagePage() {
   return (
     <Box maxW="600px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
       <VStack spacing={4} align="stretch">
-        <Box textAlign="center">
-          <Button colorScheme="teal" onClick={() => navigate("/")}>
-            ホームに戻る
-          </Button>
-        </Box>
+        <BackButton />
 
         <FormControl isRequired>
           <FormLabel>内容</FormLabel>

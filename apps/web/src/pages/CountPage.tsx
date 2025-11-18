@@ -8,6 +8,7 @@ import { loadMetadata } from "../libs/load_metadata";
 import { loadYOLOModel } from "../libs/load_model";
 import { getImagePath, getModelPath } from "../libs/model_path";
 import { detectView } from "../libs/view/detect";
+import BackButton from "../components/BackButton";
 
 import {
   Box,
@@ -142,6 +143,7 @@ export const CountPage: React.FC = () => {
   return (
     <Container maxW="container.xl" py={8}>
       <VStack spacing={8} align="stretch">
+        <BackButton />
         <Heading as="h1" size="lg" textAlign="center" color="teal.600">
           錠数カウント
         </Heading>

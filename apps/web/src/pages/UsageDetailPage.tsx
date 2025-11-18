@@ -14,6 +14,7 @@ import {
 } from "@chakra-ui/react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import BackButton from "../components/BackButton";
 
 type Pill = { id: number; name: string };
 type UsageItem = { pill_id: number; quantity: number; pill: Pill };
@@ -172,6 +173,7 @@ export default function UsageDetailPage() {
 
   return (
     <Box maxW="700px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
+      <BackButton />
       <Heading size="md" mb={3}>
         {usage.content || "無題の記録"}
       </Heading>
