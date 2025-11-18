@@ -115,7 +115,7 @@ export const CountPage: React.FC = () => {
     // pill_id は仮に1としておく（実際の運用に応じて変更）
     const items = [
       {
-        pill_id: 1,
+        pill_id: 0,
         quantity: pillCount,
       },
     ];
