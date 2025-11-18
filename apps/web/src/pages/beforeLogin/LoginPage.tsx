@@ -18,7 +18,7 @@ import {
   Link,
 } from "@chakra-ui/react";
 import { LockIcon } from "@chakra-ui/icons";
-import type { LoginFormProps } from "../types";
+import type { LoginFormProps } from "../../types";
 import { useNavigate } from "react-router-dom";
 
 export const LoginPage: FC<LoginFormProps> = ({ onLogin }) => {

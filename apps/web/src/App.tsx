@@ -7,12 +7,12 @@ import { CountPage } from "./pages/CountPage";
 import AddUsagePage from "./pages/AddUsagePage";
 import UsageListPage from "./pages/UsageListPage";
 import UsageDetailPage from "./pages/UsageDetailPage";
-import UsageLineChart from "./pages/UsageLineChart";
+import UsageSummaryChart from "./pages/UsageSummaryChart.tsx";
 import UserProfilePage from "./pages/UserProfilePage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { ForgotPassword } from "./pages/ForgotPassword";
-import { ResetPasswordPage } from "./pages/ResetPasswordPage";
-import { Verified } from "./pages/Verified";
+import { RegisterPage } from "./pages/beforeLogin/RegisterPage";
+import { ForgotPassword } from "./pages/beforeLogin/ForgotPassword";
+import { ResetPasswordPage } from "./pages/beforeLogin/ResetPasswordPage";
+import { Verified } from "./pages/beforeLogin/Verified";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 
@@ -31,7 +31,7 @@ const App: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/count" element={<CountPage />} />
           <Route path="/add-usage" element={<AddUsagePage />} />
-          <Route path="/chart" element={<UsageLineChart />} />
+          <Route path="/chart" element={<UsageSummaryChart />} />
           <Route path="/usage-list" element={<UsageListPage />} />
           <Route path="/usage/:id" element={<UsageDetailPage />} />
           <Route path="/user/:userId" element={<UserProfilePage />} />

@@ -14,7 +14,7 @@ import {
   Container,
 } from "@chakra-ui/react";
 import type { User } from "../types";
-import { LoginPage } from "./LoginPage";
+import { LoginPage } from "./beforeLogin/LoginPage.tsx";
 import { useNavigate } from "react-router-dom";
 import { StopDaysCard } from "../components/cards/StopDaysCard.tsx";
 import { UsageDaysCard } from "../components/cards/UsageDaysCard.tsx";
