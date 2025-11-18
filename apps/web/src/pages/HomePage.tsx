@@ -16,6 +16,8 @@ import {
 import type { User } from "../types";
 import { LoginPage } from "./LoginPage";
 import { useNavigate } from "react-router-dom";
+import { StopDaysCard } from "../components/cards/StopDaysCard.tsx";
+import { UsageDaysCard } from "../components/cards/UsageDaysCard.tsx";
 
 interface StopPillData {
   stop_days: number;
@@ -205,118 +207,20 @@ export const HomePage: FC = () => {
 
         {/* 断薬日数と連続服用日数カード */}
         <SimpleGrid columns={2} spacing={4} w="full">
-          {/* 断薬日数 */}
-          <Box
-            borderWidth="1px"
-            borderRadius="xl"
-            p={6}
-            bg="white"
-            shadow="md"
-            textAlign="center"
-          >
-            {stopDaysLoading ? (
-              <Spinner size="lg" color="teal.500" />
-            ) : stopDaysError ? (
-              <VStack spacing={2}>
-                <Text color="red.500" fontSize="sm">
-                  取得失敗
-                </Text>
-                <Button size="xs" onClick={fetchStopDays} colorScheme="teal">
-                  再読み込み
-                </Button>
-              </VStack>
-            ) : stopDaysData ? (
-              <VStack spacing={2}>
-                <Text fontSize="sm" fontWeight="medium" color="gray.600">
-                  断薬日数
-                </Text>
-                <Text
-                  fontSize="5xl"
-                  fontWeight="bold"
-                  color="teal.500"
-                  lineHeight="1"
-                >
-                  {stopDaysData.stop_days}
-                </Text>
-                <Text fontSize="lg" color="gray.500">
-                  日
-                </Text>
-                {stopDaysData.stop_days > 0 && (
-                  <Badge
-                    colorScheme={getMilestoneColor(stopDaysData.stop_days)}
-                    fontSize="xs"
-                    px={2}
-                    py={1}
-                    borderRadius="full"
-                  >
-                    {getMilestoneMessage(stopDaysData.stop_days)}
-                  </Badge>
-                )}
-                <Text fontSize="xs" color="gray.500" mt={2}>
-                  最高記録: {stopDaysData.max_stop_days}日
-                </Text>
-              </VStack>
-            ) : (
-              <Text color="gray.500" fontSize="sm">
-                データなし
-              </Text>
-            )}
-          </Box>
+          <StopDaysCard
+            loading={stopDaysLoading}
+            error={stopDaysError}
+            data={stopDaysData}
+            onRetry={fetchStopDays}
+            getMilestoneColor={getMilestoneColor}
+            getMilestoneMessage={getMilestoneMessage}
+          />
 
-          {/* 連続服用日数 */}
-          <Box
-            borderWidth="1px"
-            borderRadius="xl"
-            p={6}
-            bg="white"
-            shadow="md"
-            textAlign="center"
-          >
-            {stopDaysLoading ? (
-              <Spinner size="lg" color="blue.500" />
-            ) : stopDaysError ? (
-              <VStack spacing={2}>
-                <Text color="red.500" fontSize="sm">
-                  取得失敗
-                </Text>
-              </VStack>
-            ) : stopDaysData ? (
-              <VStack spacing={2}>
-                <Text fontSize="sm" fontWeight="medium" color="gray.600">
-                  連続服用日数
-                </Text>
-                <Text
-                  fontSize="5xl"
-                  fontWeight="bold"
-                  color="blue.500"
-                  lineHeight="1"
-                >
-                  {stopDaysData.consecutive_usage_days}
-                </Text>
-                <Text fontSize="lg" color="gray.500">
-                  日
-                </Text>
-                {stopDaysData.consecutive_usage_days >= 30 && (
-                  <Badge
-                    colorScheme="blue"
-                    fontSize="xs"
-                    px={2}
-                    py={1}
-                    borderRadius="full"
-                  >
-                    継続中
-                  </Badge>
-                )}
-                <Text fontSize="xs" color="gray.500" mt={2}>
-                  最高記録: {stopDaysData.max_consecutive_usage_days}日
-                </Text>
-              </VStack>
-            ) : (
-              <Text color="gray.500" fontSize="sm">
-                データなし
-              </Text>
-            )}
-          </Box>
+          <UsageDaysCard
+            loading={stopDaysLoading}
+            error={stopDaysError}
+            data={stopDaysData}
+          />
         </SimpleGrid>
 
         {/* 最終服薬日 */}
