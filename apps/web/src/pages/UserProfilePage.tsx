@@ -6,9 +6,7 @@ import {
   Text,
   VStack,
   HStack,
-  Divider,
   Spinner,
-  Badge,
   useToast,
   Button,
   SimpleGrid,
@@ -17,19 +15,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { StopDaysCard } from "../components/cards/StopDaysCard.tsx";
 import { UsageDaysCard } from "../components/cards/UsageDaysCard.tsx";
-
-// 型定義
-type Pill = { id: number; name: string };
-type UsageItem = { pill_id: number; quantity: number; pill: Pill };
-type User = { id: number; name: string };
-type UsageList = {
-  id: number;
-  user_id: number;
-  content: string;
-  timestamp: string;
-  user: User;
-  items: UsageItem[];
-};
+import { UsageListItem, UsageList } from "../components/UsageListItem";
 
 type StopPillData = {
   stop_days: number;
@@ -38,22 +24,6 @@ type StopPillData = {
   max_consecutive_usage_days: number;
   last_usage_date?: string;
 };
-
-// 薬ごとのバッジ色
-function getBadgeColor(pillName: string) {
-  switch (pillName.toLowerCase()) {
-    case "ブロン":
-      return "blue";
-    case "レスタミン":
-      return "orange";
-    case "パブロンゴールド":
-      return "yellow";
-    case "メジコン":
-      return "purple";
-    default:
-      return "gray";
-  }
-}
 
 export default function UserProfilePage() {
   const { userId } = useParams<{ userId: string }>();
@@ -149,6 +119,10 @@ export default function UserProfilePage() {
     return "継続中";
   };
 
+  const handleUsageClick = (usageId: number) => {
+    navigate(`/usage/${usageId}`);
+  };
+
   return (
     <Box maxW="800px" mx="auto" mt={8} p={6} borderWidth={1} borderRadius="md">
       <HStack mb={4}>
@@ -206,38 +180,12 @@ export default function UserProfilePage() {
 
         {/* 使用履歴 */}
         {usageLists.map((usage) => (
-          <Box
+          <UsageListItem
             key={usage.id}
-            p={4}
-            borderWidth={1}
-            borderRadius="md"
-            shadow="sm"
-            bg="white"
-            _hover={{ bg: "gray.50", cursor: "pointer" }}
-            onClick={() => navigate(`/usage/${usage.id}`)}
-          >
-            <HStack justify="space-between" mb={2}>
-              <Text fontWeight="bold" fontSize="lg">
-                {usage.content || "無題の使用記録"}
-              </Text>
-              <Text fontSize="sm" color="gray.500">
-                {new Date(usage.timestamp).toLocaleString("ja-JP")}
-              </Text>
-            </HStack>
-
-            <Divider mb={3} />
-
-            <VStack align="start" spacing={1}>
-              {usage.items.map((item) => (
-                <HStack key={item.pill_id} spacing={4}>
-                  <Badge colorScheme={getBadgeColor(item.pill.name)}>
-                    {item.pill.name}
-                  </Badge>
-                  <Text>数量: {item.quantity}</Text>
-                </HStack>
-              ))}
-            </VStack>
-          </Box>
+            usage={usage}
+            showUser={false}
+            onUsageClick={handleUsageClick}
+          />
         ))}
       </VStack>
     </Box>
