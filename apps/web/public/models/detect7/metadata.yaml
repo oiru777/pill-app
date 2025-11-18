@@ -1,6 +1,6 @@
-description: Ultralytics YOLO11n model trained on /content/drive/MyDrive/yolo/med/med2.yaml
+description: Ultralytics YOLO11n model trained on /content/drive/MyDrive/yolo/med/med.yaml
 author: Ultralytics
-date: '2025-11-18T07:44:05.817702'
+date: '2025-11-18T02:52:58.958748'
 version: 8.3.228
 license: AGPL-3.0 License (https://ultralytics.com/license)
 docs: https://docs.ultralytics.com
@@ -11,7 +11,11 @@ imgsz:
 - 640
 - 640
 names:
-  0: pill
+  0: bron
+  1: restamin
+  2: medicon
+  3: pabrongold
+  4: coin
 args:
   batch: 1
   half: false

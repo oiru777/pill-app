@@ -21,7 +21,6 @@ import {
   useToast,
   Spinner,
   Container,
-  Divider,
   Card,
   CardBody,
   Heading,
@@ -32,8 +31,7 @@ export const CountPage: React.FC = () => {
   const [model, setModel] = useState<tf.GraphModel | null>(null);
   const [metadata, setMetadata] = useState<any>(null);
   const [state, setState] = useState<[boolean, string]>([false, ""]);
-  const [bboxCount, setBboxCount] = useState<number>(0);
-  const [labelCounts, setLabelCounts] = useState<Record<string, number>>({});
+  const [pillCount, setPillCount] = useState<number>(0);
 
   const imageRef = useRef<HTMLImageElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -88,14 +86,9 @@ export const CountPage: React.FC = () => {
     );
 
     const bboxes = await detect(model, imageRef.current, metadata.imgsz, 0.4);
-    setBboxCount(bboxes.length);
 
-    const counts: Record<string, number> = {};
-    for (const bbox of bboxes) {
-      const labelName = metadata.names[bbox.label] || `class_${bbox.label}`;
-      counts[labelName] = (counts[labelName] || 0) + 1;
-    }
-    setLabelCounts(counts);
+    // 1クラス（pill）のカウント
+    setPillCount(bboxes.length);
 
     detectView(
       canvasRef.current!,
@@ -109,7 +102,7 @@ export const CountPage: React.FC = () => {
 
   // 🔹 AddUsagePage へ遷移してデータ渡す
   const handleGoToRegister = () => {
-    if (!Object.keys(labelCounts).length) {
+    if (pillCount === 0) {
       toast({
         title: "検出結果がありません。",
         status: "warning",
@@ -119,17 +112,13 @@ export const CountPage: React.FC = () => {
       return;
     }
 
-    // 🧩 YOLOラベル → pillsテーブルのID対応マップ
-    const pillMap: Record<string, number> = {
-      bron: 1,
-      restamin: 2,
-      pabrongold: 3,
-    };
-
-    const items = Object.entries(labelCounts).map(([label, quantity]) => ({
-      pill_id: pillMap[label.toLowerCase()] ?? 1,
-      quantity,
-    }));
+    // pill_id は仮に1としておく（実際の運用に応じて変更）
+    const items = [
+      {
+        pill_id: 1,
+        quantity: pillCount,
+      },
+    ];
 
     navigate("/add-usage", {
       state: {
@@ -187,49 +176,31 @@ export const CountPage: React.FC = () => {
           </CardBody>
         </Card>
 
-        {bboxCount > 0 && (
+        {pillCount > 0 && (
           <Card bg="teal.50" borderColor="teal.200" borderWidth={1}>
             <CardBody>
-              <VStack spacing={3} align="stretch">
+              <VStack spacing={4} align="stretch">
                 <Heading as="h3" size="md" color="teal.700">
                   検出結果
                 </Heading>
-                <Text fontSize="lg" fontWeight="semibold">
-                  検出された物体数:{" "}
-                  <Text as="span" color="teal.600">
-                    {bboxCount}
+                <Text fontSize="xl" fontWeight="bold">
+                  検出された錠数:{" "}
+                  <Text as="span" color="teal.600" fontSize="2xl">
+                    {pillCount} 錠
                   </Text>
                 </Text>
 
-                {Object.keys(labelCounts).length > 0 && (
-                  <>
-                    <Divider borderColor="teal.300" />
-                    <Box>
-                      <Text fontWeight="bold" mb={2} color="teal.700">
-                        ラベルごとの内訳:
-                      </Text>
-                      {Object.entries(labelCounts).map(([label, count]) => (
-                        <HStack key={label} justify="space-between" py={1}>
-                          <Text>{label}</Text>
-                          <Text fontWeight="bold" color="teal.600">
-                            {count} 錠
-                          </Text>
-                        </HStack>
-                      ))}
-                    </Box>
-
-                    <Button
-                      colorScheme="teal"
-                      size="lg"
-                      onClick={handleGoToRegister}
-                      width="full"
-                      maxW="md"
-                      mx="auto"
-                    >
-                      この検出結果で登録
-                    </Button>
-                  </>
-                )}
+                <Button
+                  colorScheme="teal"
+                  size="lg"
+                  onClick={handleGoToRegister}
+                  width="full"
+                  maxW="md"
+                  mx="auto"
+                  mt={2}
+                >
+                  この検出結果で登録
+                </Button>
               </VStack>
             </CardBody>
           </Card>
